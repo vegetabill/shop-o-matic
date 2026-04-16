@@ -1,0 +1,26 @@
+node_modules/
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native build artifacts
+ios/
+android/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Google service files (contain secrets)
+GoogleService-Info.plist
+google-services.json
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp

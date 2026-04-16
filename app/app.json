@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "Shop-o-matic",
+    "slug": "shop-o-matic",
+    "scheme": "shopomaticapp",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F2F2F7"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.shopomatic.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Camera is not used by this app.",
+        "NSPhotoLibraryUsageDescription": "Photo library is not used by this app."
+      },
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#F2F2F7"
+      },
+      "package": "com.shopomatic.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-secure-store"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "YOUR_EAS_PROJECT_ID"
+      }
+    }
+  }
+}
