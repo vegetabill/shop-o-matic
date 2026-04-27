@@ -3,10 +3,8 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
-  GestureResponderEvent,
   Platform,
   SafeAreaView,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -15,32 +13,35 @@ import {
 import { useHousehold } from '../context/HouseholdContext';
 import { Item, Store } from '../types';
 
-const ALL_STORES_SENTINEL = '__all__';
-
 export default function ShoppingScreen({ navigation }: any) {
-  const { items, stores, endShopping, updateItem } = useHousehold();
+  const { items, stores, endShopping } = useHousehold();
 
-  const [selectedStoreId, setSelectedStoreId] = useState<string>(
-    stores.length > 0 ? stores[0].id : ALL_STORES_SENTINEL,
-  );
+  const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [purchasedIds, setPurchasedIds] = useState<Set<string>>(new Set());
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
   const [isDone, setIsDone] = useState(false);
 
   const shoppingItems = useMemo(() => {
-    return items.filter((item) => item.on_list && !hiddenIds.has(item.id));
-  }, [items, hiddenIds]);
-
-  const filteredItems = useMemo(() => {
-    if (selectedStoreId === ALL_STORES_SENTINEL) {
-      return shoppingItems;
-    }
-    return shoppingItems.filter(
+    if (!selectedStore) return [];
+    return items.filter(
       (item) =>
-        item.stores.length === 0 ||
-        item.stores.some((s) => s.store_id === selectedStoreId),
+        item.on_list &&
+        !hiddenIds.has(item.id) &&
+        (item.stores.length === 0 || item.stores.some((s) => s.store_id === selectedStore.id)),
     );
-  }, [shoppingItems, selectedStoreId]);
+  }, [items, selectedStore, hiddenIds]);
+
+  const handleSelectStore = useCallback((store: Store) => {
+    setSelectedStore(store);
+    setPurchasedIds(new Set());
+    setHiddenIds(new Set());
+  }, []);
+
+  const handleChangeStore = useCallback(() => {
+    setSelectedStore(null);
+    setPurchasedIds(new Set());
+    setHiddenIds(new Set());
+  }, []);
 
   const handleTogglePurchased = useCallback((item: Item) => {
     setPurchasedIds((prev) => {
@@ -54,27 +55,20 @@ export default function ShoppingScreen({ navigation }: any) {
     });
   }, []);
 
-  const handleNotAvailable = useCallback((item: Item) => {
-    setHiddenIds((prev) => new Set([...prev, item.id]));
+  const handleLongPress = useCallback((item: Item) => {
+    Alert.alert(
+      'Not Available Here',
+      `Hide "${item.name}" for this shopping session?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Hide',
+          style: 'destructive',
+          onPress: () => setHiddenIds((prev) => new Set([...prev, item.id])),
+        },
+      ],
+    );
   }, []);
-
-  const handleLongPress = useCallback(
-    (item: Item) => {
-      Alert.alert(
-        'Not Available Here',
-        `Hide "${item.name}" for this shopping session?`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Hide',
-            style: 'destructive',
-            onPress: () => handleNotAvailable(item),
-          },
-        ],
-      );
-    },
-    [handleNotAvailable],
-  );
 
   const handleDoneShopping = useCallback(async () => {
     setIsDone(true);
@@ -87,32 +81,48 @@ export default function ShoppingScreen({ navigation }: any) {
     }
   }, [endShopping, purchasedIds, navigation]);
 
-  const renderStoreTab = (store: Store) => (
-    <TouchableOpacity
-      key={store.id}
-      style={[
-        styles.storeTab,
-        selectedStoreId === store.id && styles.storeTabActive,
-        selectedStoreId === store.id && { borderBottomColor: store.color },
-      ]}
-      onPress={() => setSelectedStoreId(store.id)}
-      activeOpacity={0.7}
-    >
-      <View style={[styles.storeTabDot, { backgroundColor: store.color }]} />
-      <Text
-        style={[
-          styles.storeTabText,
-          selectedStoreId === store.id && styles.storeTabTextActive,
-        ]}
-      >
-        {store.name}
-      </Text>
-    </TouchableOpacity>
-  );
+  // ── Store picker ──────────────────────────────────────────────────────────
+
+  if (!selectedStore) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.pickerHeader}>
+          <Text style={styles.pickerTitle}>Where are you shopping?</Text>
+          <Text style={styles.pickerSubtitle}>Choose a store to see your list for it.</Text>
+        </View>
+
+        {stores.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyEmoji}>🏪</Text>
+            <Text style={styles.emptyTitle}>No stores yet</Text>
+            <Text style={styles.emptySubtitle}>Add stores in the Stores tab first.</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={stores}
+            keyExtractor={(s) => s.id}
+            contentContainerStyle={styles.pickerList}
+            renderItem={({ item: store }) => (
+              <TouchableOpacity
+                style={styles.storeCard}
+                onPress={() => handleSelectStore(store)}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.storeCardColor, { backgroundColor: store.color }]} />
+                <Text style={styles.storeCardName}>{store.name}</Text>
+                <Text style={styles.storeCardChevron}>›</Text>
+              </TouchableOpacity>
+            )}
+          />
+        )}
+      </SafeAreaView>
+    );
+  }
+
+  // ── Shopping list ─────────────────────────────────────────────────────────
 
   const renderItem = ({ item }: { item: Item }) => {
     const isPurchased = purchasedIds.has(item.id);
-
     return (
       <TouchableOpacity
         style={[styles.itemRow, isPurchased && styles.itemRowPurchased]}
@@ -140,48 +150,26 @@ export default function ShoppingScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Store tabs */}
-      {stores.length > 0 ? (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.tabsContainer}
-          contentContainerStyle={styles.tabsContent}
-        >
-          <TouchableOpacity
-            style={[
-              styles.storeTab,
-              selectedStoreId === ALL_STORES_SENTINEL && styles.storeTabActive,
-            ]}
-            onPress={() => setSelectedStoreId(ALL_STORES_SENTINEL)}
-          >
-            <Text
-              style={[
-                styles.storeTabText,
-                selectedStoreId === ALL_STORES_SENTINEL && styles.storeTabTextActive,
-              ]}
-            >
-              All
-            </Text>
-          </TouchableOpacity>
-          {stores.map(renderStoreTab)}
-        </ScrollView>
-      ) : null}
+      {/* Store header */}
+      <View style={styles.storeHeader}>
+        <View style={[styles.storeHeaderDot, { backgroundColor: selectedStore.color }]} />
+        <Text style={styles.storeHeaderName} numberOfLines={1}>
+          {selectedStore.name}
+        </Text>
+        <TouchableOpacity onPress={handleChangeStore} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Text style={styles.changeStoreText}>Change</Text>
+        </TouchableOpacity>
+      </View>
 
-      {/* Items list */}
-      {filteredItems.length === 0 ? (
+      {shoppingItems.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyEmoji}>🛒</Text>
-          <Text style={styles.emptyTitle}>Nothing to buy</Text>
-          <Text style={styles.emptySubtitle}>
-            {selectedStoreId === ALL_STORES_SENTINEL
-              ? 'Your list is empty.'
-              : 'No items for this store.'}
-          </Text>
+          <Text style={styles.emptyTitle}>Nothing to buy here</Text>
+          <Text style={styles.emptySubtitle}>No list items are tagged for {selectedStore.name}.</Text>
         </View>
       ) : (
         <FlatList
-          data={filteredItems}
+          data={shoppingItems}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           style={styles.list}
@@ -189,14 +177,10 @@ export default function ShoppingScreen({ navigation }: any) {
         />
       )}
 
-      {/* Info about long press */}
       <View style={styles.hintContainer}>
-        <Text style={styles.hintText}>
-          Tap to check off · Long press to hide from this store
-        </Text>
+        <Text style={styles.hintText}>Tap to check off · Long press to hide</Text>
       </View>
 
-      {/* Done button */}
       <View style={styles.footer}>
         <TouchableOpacity
           style={[styles.doneButton, isDone && styles.doneButtonDisabled]}
@@ -222,47 +206,87 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F2F2F7',
   },
-  tabsContainer: {
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#C6C6C8',
-    maxHeight: 48,
+
+  // Store picker
+  pickerHeader: {
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    paddingBottom: 20,
   },
-  tabsContent: {
-    paddingHorizontal: 12,
+  pickerTitle: {
+    fontSize: 26,
+    fontWeight: '700',
+    color: '#1C1C1E',
+    marginBottom: 6,
   },
-  storeTab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-    marginRight: 4,
-    gap: 6,
-  },
-  storeTabActive: {
-    borderBottomWidth: 2,
-  },
-  storeTabDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  storeTabText: {
+  pickerSubtitle: {
     fontSize: 15,
     color: '#8E8E93',
   },
-  storeTabTextActive: {
-    color: '#1C1C1E',
-    fontWeight: '600',
+  pickerList: {
+    paddingHorizontal: 16,
+    gap: 10,
   },
-  list: {
+  storeCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingVertical: 18,
+    paddingHorizontal: 16,
+    gap: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  storeCardColor: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+  },
+  storeCardName: {
     flex: 1,
+    fontSize: 17,
+    fontWeight: '500',
+    color: '#1C1C1E',
   },
-  listContent: {
-    paddingBottom: 8,
+  storeCardChevron: {
+    fontSize: 22,
+    color: '#C7C7CC',
   },
+
+  // Store header bar
+  storeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#C6C6C8',
+    gap: 10,
+  },
+  storeHeaderDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  storeHeaderName: {
+    flex: 1,
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#1C1C1E',
+  },
+  changeStoreText: {
+    fontSize: 15,
+    color: '#007AFF',
+  },
+
+  // Items list
+  list: { flex: 1 },
+  listContent: { paddingBottom: 8 },
   itemRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -273,9 +297,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#E5E5EA',
     gap: 12,
   },
-  itemRowPurchased: {
-    backgroundColor: '#F9F9F9',
-  },
+  itemRowPurchased: { backgroundColor: '#F9F9F9' },
   checkbox: {
     width: 26,
     height: 26,
@@ -289,28 +311,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#34C759',
     borderColor: '#34C759',
   },
-  checkmark: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
-  },
+  checkmark: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
   itemContent: { flex: 1 },
-  itemName: {
-    fontSize: 17,
-    color: '#1C1C1E',
-  },
-  itemNamePurchased: {
-    textDecorationLine: 'line-through',
-    color: '#8E8E93',
-  },
-  itemNotes: {
-    fontSize: 13,
-    color: '#8E8E93',
-    marginTop: 2,
-  },
-  itemNotesPurchased: {
-    textDecorationLine: 'line-through',
-  },
+  itemName: { fontSize: 17, color: '#1C1C1E' },
+  itemNamePurchased: { textDecorationLine: 'line-through', color: '#8E8E93' },
+  itemNotes: { fontSize: 13, color: '#8E8E93', marginTop: 2 },
+  itemNotesPurchased: { textDecorationLine: 'line-through' },
+
+  // Empty state
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -320,14 +328,10 @@ const styles = StyleSheet.create({
   emptyEmoji: { fontSize: 48, marginBottom: 12 },
   emptyTitle: { fontSize: 20, fontWeight: '600', color: '#1C1C1E', marginBottom: 6 },
   emptySubtitle: { fontSize: 15, color: '#8E8E93', textAlign: 'center' },
-  hintContainer: {
-    paddingVertical: 6,
-    alignItems: 'center',
-  },
-  hintText: {
-    fontSize: 12,
-    color: '#C7C7CC',
-  },
+
+  // Footer
+  hintContainer: { paddingVertical: 6, alignItems: 'center' },
+  hintText: { fontSize: 12, color: '#C7C7CC' },
   footer: {
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -343,12 +347,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  doneButtonDisabled: {
-    opacity: 0.6,
-  },
-  doneButtonText: {
-    color: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '700',
-  },
+  doneButtonDisabled: { opacity: 0.6 },
+  doneButtonText: { color: '#FFFFFF', fontSize: 17, fontWeight: '700' },
 });
