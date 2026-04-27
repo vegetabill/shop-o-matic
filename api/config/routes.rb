@@ -2,7 +2,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       # Auth
-      post "auth/google", to: "auth#google"
+      post "auth/auth0", to: "auth#auth0"
       post "auth/mock", to: "auth#mock" if Rails.env.development?
 
       # Households

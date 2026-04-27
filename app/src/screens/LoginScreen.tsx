@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   ActivityIndicator,
-  Image,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -57,20 +56,15 @@ export default function LoginScreen() {
           ) : null}
 
           <TouchableOpacity
-            style={styles.googleButton}
+            style={styles.signInButton}
             onPress={handleSignIn}
             disabled={isSigning}
             activeOpacity={0.8}
           >
             {isSigning ? (
-              <ActivityIndicator size="small" color="#1C1C1E" />
+              <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
-              <>
-                <View style={styles.googleIconContainer}>
-                  <Text style={styles.googleIcon}>G</Text>
-                </View>
-                <Text style={styles.googleButtonText}>Continue with Google</Text>
-              </>
+              <Text style={styles.signInButtonText}>Sign in</Text>
             )}
           </TouchableOpacity>
 
@@ -85,7 +79,7 @@ export default function LoginScreen() {
               disabled={isSigning}
               activeOpacity={0.8}
             >
-              <Text style={styles.mockButtonText}>Dev Sign In (skip Google)</Text>
+              <Text style={styles.mockButtonText}>Dev Sign In (skip Auth0)</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -146,37 +140,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
   },
-  googleButton: {
-    flexDirection: 'row',
+  signInButton: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#635BFF',
     borderRadius: 12,
     height: 54,
-    gap: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
-  googleIconContainer: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#4285F4',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  googleIcon: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  googleButtonText: {
+  signInButtonText: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#1C1C1E',
+    color: '#FFFFFF',
   },
   disclaimer: {
     fontSize: 12,

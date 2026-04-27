@@ -6,11 +6,8 @@ export interface AuthResponse {
   user: User;
 }
 
-export async function exchangeGoogleToken(token: string, isIdToken: boolean = true): Promise<AuthResponse> {
-  const body = isIdToken
-    ? { id_token: token }
-    : { access_token: token };
-  return apiClient.post<AuthResponse>('/auth/google', body);
+export async function exchangeAuth0Token(idToken: string): Promise<AuthResponse> {
+  return apiClient.post<AuthResponse>('/auth/auth0', { id_token: idToken });
 }
 
 export async function mockSignIn(): Promise<AuthResponse> {

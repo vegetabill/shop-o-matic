@@ -6,7 +6,7 @@ class User < ApplicationRecord
 
   validates :email, presence: true, uniqueness: { case_sensitive: false }, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :name, presence: true
-  validates :google_uid, presence: true, uniqueness: true
+  validates :auth0_uid, presence: true, uniqueness: true
 
   before_validation :normalize_email
 

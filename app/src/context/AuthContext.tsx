@@ -8,18 +8,25 @@ import React, {
 } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
+import {
+  useAutoDiscovery,
+  useAuthRequest,
+  exchangeCodeAsync,
+  makeRedirectUri,
+} from 'expo-auth-session';
 import { AuthState, AuthAction, User } from '../types';
-import { exchangeGoogleToken, mockSignIn as mockSignInApi } from '../api/auth';
+import { exchangeAuth0Token, mockSignIn as mockSignInApi } from '../api/auth';
 import { setOnUnauthorizedCallback } from '../api/client';
 import {
   SECURE_STORE_JWT_KEY,
   SECURE_STORE_USER_KEY,
-  GOOGLE_WEB_CLIENT_ID,
-  GOOGLE_IOS_CLIENT_ID,
+  AUTH0_DOMAIN,
+  AUTH0_CLIENT_ID,
 } from '../constants/config';
 
 WebBrowser.maybeCompleteAuthSession();
+
+const REDIRECT_URI = makeRedirectUri({ scheme: 'com.shopomatic.app' });
 
 interface AuthContextValue extends AuthState {
   signIn: () => Promise<void>;
@@ -63,30 +70,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(authReducer, initialState);
   const [signInError, setSignInError] = React.useState<string | null>(null);
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    webClientId: GOOGLE_WEB_CLIENT_ID,
-    iosClientId: GOOGLE_IOS_CLIENT_ID,
-  });
+  const discovery = useAutoDiscovery(`https://${AUTH0_DOMAIN}`);
+
+  const [request, response, promptAsync] = useAuthRequest(
+    {
+      clientId: AUTH0_CLIENT_ID,
+      scopes: ['openid', 'profile', 'email'],
+      redirectUri: REDIRECT_URI,
+    },
+    discovery,
+  );
 
   useEffect(() => {
     restoreSession();
   }, []);
 
-  // Handle Google OAuth response
   useEffect(() => {
-    if (response?.type === 'success') {
-      const idToken = response.authentication?.idToken;
-      const accessToken = response.authentication?.accessToken;
-      const token = idToken ?? accessToken;
-      if (token) {
-        handleGoogleToken(token, !!idToken);
-      } else {
-        setSignInError('No token returned from Google');
-      }
+    if (response?.type === 'success' && discovery) {
+      const { code } = response.params;
+      exchangeCodeAsync(
+        {
+          clientId: AUTH0_CLIENT_ID,
+          code,
+          redirectUri: REDIRECT_URI,
+          extraParams: { code_verifier: request?.codeVerifier ?? '' },
+        },
+        discovery,
+      )
+        .then((tokenResponse) => {
+          const idToken = tokenResponse.idToken;
+          if (idToken) {
+            return handleAuth0Token(idToken);
+          }
+          setSignInError('No ID token returned from Auth0');
+        })
+        .catch((error: any) => {
+          setSignInError(error.message ?? 'Token exchange failed. Please try again.');
+        });
     } else if (response?.type === 'error') {
       setSignInError(response.error?.message ?? 'Sign-in failed. Please try again.');
     }
-  }, [response]);
+  }, [response, discovery]);
 
   const restoreSession = async () => {
     try {
@@ -106,9 +130,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const handleGoogleToken = async (googleToken: string, isIdToken: boolean) => {
+  const handleAuth0Token = async (idToken: string) => {
     try {
-      const authResponse = await exchangeGoogleToken(googleToken, isIdToken);
+      const authResponse = await exchangeAuth0Token(idToken);
 
       await Promise.all([
         SecureStore.setItemAsync(SECURE_STORE_JWT_KEY, authResponse.token),
