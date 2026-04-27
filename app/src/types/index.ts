@@ -34,11 +34,14 @@ export interface ItemStore {
   store_color: string;
 }
 
+export type ItemPriority = 'none' | 'low' | 'high';
+
 export interface Item {
   id: string;
   household_id: string;
   name: string;
   notes?: string;
+  priority: ItemPriority;
   category_id?: string;
   category_name?: string;
   on_list: boolean;
@@ -84,6 +87,7 @@ export type HouseholdAction =
 export interface CreateItemPayload {
   name: string;
   notes?: string;
+  priority?: ItemPriority;
   category_id?: string;
   store_ids?: string[];
 }
@@ -91,6 +95,7 @@ export interface CreateItemPayload {
 export interface UpdateItemPayload {
   name?: string;
   notes?: string;
+  priority?: ItemPriority;
   category_id?: string | null;
   store_ids?: string[];
   on_list?: boolean;

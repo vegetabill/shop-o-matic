@@ -98,7 +98,7 @@ module Api
       end
 
       def item_params
-        params.require(:item).permit(:name, :notes, :category_id, :on_list)
+        params.require(:item).permit(:name, :notes, :category_id, :on_list, :priority)
       end
 
       def assign_stores(item, store_ids)
@@ -115,6 +115,7 @@ module Api
           id: item.id,
           name: item.name,
           notes: item.notes,
+          priority: item.priority,
           on_list: item.on_list,
           purchased: item.purchased_at.present?,
           purchased_at: item.purchased_at,

@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useHousehold } from '../context/HouseholdContext';
-import { Item, Category, Store } from '../types';
+import { Item, Category, Store, ItemPriority } from '../types';
 import AutocompleteInput from '../components/AutocompleteInput';
 import StoreTag from '../components/StoreTag';
 import { HOUSEHOLD_JOIN_BASE_URL } from '../constants/config';
@@ -33,11 +33,18 @@ interface EditModalState {
   item: Item | null;
   name: string;
   notes: string;
+  priority: ItemPriority;
   categoryId: string | null;
   selectedStoreIds: Set<string>;
   isSubmitting: boolean;
   error: string | null;
 }
+
+const PRIORITY_OPTIONS: { value: ItemPriority; label: string; color: string }[] = [
+  { value: 'none', label: 'None', color: '#8E8E93' },
+  { value: 'low', label: 'On Sale', color: '#007AFF' },
+  { value: 'high', label: 'Need Now', color: '#FF3B30' },
+];
 
 export default function ListScreen({ navigation }: any) {
   const {
@@ -58,6 +65,7 @@ export default function ListScreen({ navigation }: any) {
     item: null,
     name: '',
     notes: '',
+    priority: 'none',
     categoryId: null,
     selectedStoreIds: new Set(),
     isSubmitting: false,
@@ -99,6 +107,7 @@ export default function ListScreen({ navigation }: any) {
       item,
       name: item.name,
       notes: item.notes ?? '',
+      priority: item.priority ?? 'none',
       categoryId: item.category_id ?? null,
       selectedStoreIds: new Set(item.stores.map((s) => s.store_id)),
       isSubmitting: false,
@@ -117,6 +126,7 @@ export default function ListScreen({ navigation }: any) {
       await updateItem(editModal.item.id, {
         name: editModal.name.trim(),
         notes: editModal.notes.trim() || undefined,
+        priority: editModal.priority,
         category_id: editModal.categoryId,
         store_ids: Array.from(editModal.selectedStoreIds),
       });
@@ -193,30 +203,37 @@ export default function ListScreen({ navigation }: any) {
     </View>
   );
 
-  const renderItem = ({ item }: { item: Item }) => (
-    <TouchableOpacity
-      style={styles.itemRow}
-      onPress={() => openEditModal(item)}
-      activeOpacity={0.7}
-    >
-      <View style={styles.itemContent}>
-        <Text style={styles.itemName}>{item.name}</Text>
-        {item.notes ? (
-          <Text style={styles.itemNotes} numberOfLines={1}>
-            {item.notes}
-          </Text>
-        ) : null}
-        {item.stores.length > 0 ? (
-          <View style={styles.storeTagRow}>
-            {item.stores.map((s) => (
-              <StoreTag key={s.store_id} store={s} />
-            ))}
-          </View>
-        ) : null}
-      </View>
-      <Text style={styles.chevron}>›</Text>
-    </TouchableOpacity>
-  );
+  const renderItem = ({ item }: { item: Item }) => {
+    const priorityOption = PRIORITY_OPTIONS.find((p) => p.value === item.priority);
+    const showPriority = item.priority && item.priority !== 'none';
+    return (
+      <TouchableOpacity
+        style={styles.itemRow}
+        onPress={() => openEditModal(item)}
+        activeOpacity={0.7}
+      >
+        {showPriority && (
+          <View style={[styles.priorityBar, { backgroundColor: priorityOption!.color }]} />
+        )}
+        <View style={styles.itemContent}>
+          <Text style={styles.itemName}>{item.name}</Text>
+          {item.notes ? (
+            <Text style={styles.itemNotes} numberOfLines={1}>
+              {item.notes}
+            </Text>
+          ) : null}
+          {item.stores.length > 0 ? (
+            <View style={styles.storeTagRow}>
+              {item.stores.map((s) => (
+                <StoreTag key={s.store_id} store={s} />
+              ))}
+            </View>
+          ) : null}
+        </View>
+        <Text style={styles.chevron}>›</Text>
+      </TouchableOpacity>
+    );
+  };
 
   if (!activeHousehold) {
     return (
@@ -328,6 +345,28 @@ export default function ListScreen({ navigation }: any) {
                 multiline
                 numberOfLines={3}
               />
+
+              <Text style={styles.fieldLabel}>Priority</Text>
+              <View style={styles.priorityRow}>
+                {PRIORITY_OPTIONS.map((opt) => {
+                  const selected = editModal.priority === opt.value;
+                  return (
+                    <TouchableOpacity
+                      key={opt.value}
+                      style={[
+                        styles.priorityOption,
+                        selected && { backgroundColor: opt.color, borderColor: opt.color },
+                      ]}
+                      onPress={() => setEditModal((p) => ({ ...p, priority: opt.value }))}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.priorityOptionText, selected && styles.priorityOptionTextSelected]}>
+                        {opt.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
 
               <Text style={styles.fieldLabel}>Category</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pillRow}>
@@ -501,6 +540,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#E5E5EA',
+    overflow: 'hidden',
+  },
+  priorityBar: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 3,
   },
   itemContent: { flex: 1 },
   itemName: {
@@ -594,6 +641,28 @@ const styles = StyleSheet.create({
     height: 80,
     paddingTop: 12,
     textAlignVertical: 'top',
+  },
+  priorityRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  priorityOption: {
+    flex: 1,
+    paddingVertical: 9,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    alignItems: 'center',
+    backgroundColor: '#F2F2F7',
+  },
+  priorityOptionText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#8E8E93',
+  },
+  priorityOptionTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
   pillRow: {
     flexDirection: 'row',

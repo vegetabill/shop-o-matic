@@ -6,7 +6,10 @@ class Item < ApplicationRecord
   has_many :item_stores, dependent: :destroy
   has_many :stores, through: :item_stores
 
+  PRIORITIES = %w[none low high].freeze
+
   validates :name, presence: true
+  validates :priority, inclusion: { in: PRIORITIES }
 
   scope :on_list, -> { where(on_list: true) }
   scope :search, ->(q) { where("name ILIKE ?", "%#{sanitize_sql_like(q)}%") }
