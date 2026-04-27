@@ -23,6 +23,17 @@ import AutocompleteInput from '../components/AutocompleteInput';
 import StoreTag from '../components/StoreTag';
 import { HOUSEHOLD_JOIN_BASE_URL } from '../constants/config';
 
+function relativeTime(iso: string): string {
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  if (days === 0) return 'today';
+  if (days === 1) return 'yesterday';
+  if (days < 7) return `${days} days ago`;
+  if (days < 14) return '1 week ago';
+  if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
+  if (days < 60) return '1 month ago';
+  return `${Math.floor(days / 30)} months ago`;
+}
+
 interface SectionData {
   title: string;
   data: Item[];
@@ -324,6 +335,18 @@ export default function ListScreen({ navigation }: any) {
             <ScrollView showsVerticalScrollIndicator={false}>
               {editModal.error ? (
                 <Text style={styles.errorText}>{editModal.error}</Text>
+              ) : null}
+
+              {editModal.item?.last_purchased_at ? (
+                <View style={styles.lastPurchasedRow}>
+                  <Text style={styles.lastPurchasedText}>
+                    {'Purchased'}
+                    {editModal.item.last_purchased_store_name
+                      ? ` at ${editModal.item.last_purchased_store_name}`
+                      : ''}
+                    {` ${relativeTime(editModal.item.last_purchased_at)}`}
+                  </Text>
+                </View>
               ) : null}
 
               <Text style={styles.fieldLabel}>Name</Text>
@@ -738,6 +761,17 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.5,
+  },
+  lastPurchasedRow: {
+    backgroundColor: '#F2F2F7',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginBottom: 4,
+  },
+  lastPurchasedText: {
+    fontSize: 13,
+    color: '#8E8E93',
   },
   errorText: {
     color: '#FF3B30',

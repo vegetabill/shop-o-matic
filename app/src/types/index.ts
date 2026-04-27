@@ -47,6 +47,8 @@ export interface Item {
   on_list: boolean;
   purchased: boolean;
   stores: ItemStore[];
+  last_purchased_at?: string;
+  last_purchased_store_name?: string;
   created_at: string;
   updated_at: string;
 }
@@ -124,4 +126,5 @@ export interface UpdateCategoryPayload {
 
 export interface EndShoppingPayload {
   purchased_item_ids: string[];
+  store_id?: string;
 }

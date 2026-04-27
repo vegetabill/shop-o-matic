@@ -73,7 +73,7 @@ export default function ShoppingScreen({ navigation }: any) {
   const handleDoneShopping = useCallback(async () => {
     setIsDone(true);
     try {
-      await endShopping(Array.from(purchasedIds));
+      await endShopping(Array.from(purchasedIds), selectedStore?.id);
       navigation.goBack();
     } catch (e: any) {
       Alert.alert('Error', e.message ?? 'Failed to end shopping session.');

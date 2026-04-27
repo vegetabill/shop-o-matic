@@ -1,6 +1,7 @@
 class Item < ApplicationRecord
   belongs_to :household
   belongs_to :category, optional: true
+  belongs_to :last_purchased_store, class_name: "Store", optional: true
   belongs_to :added_by_user, class_name: "User", foreign_key: :added_by_user_id, optional: true
   belongs_to :updated_by_user, class_name: "User", foreign_key: :updated_by_user_id, optional: true
   has_many :item_stores, dependent: :destroy

@@ -9,7 +9,7 @@ module Api
       #   ?q=search      — search by name (for autocomplete)
       def index
         items = current_household.items
-          .includes(:category, :stores)
+          .includes(:category, :stores, :last_purchased_store)
           .order(:name)
 
         if params[:on_list].present?
@@ -123,6 +123,8 @@ module Api
           category_id: item.category_id,
           category_name: item.category&.name,
           stores: item.stores.map { |s| { store_id: s.id, store_name: s.name, store_color: s.color } },
+          last_purchased_at: item.last_purchased_at,
+          last_purchased_store_name: item.last_purchased_store&.name,
           added_by_user_id: item.added_by_user_id,
           updated_by_user_id: item.updated_by_user_id,
           created_at: item.created_at,
