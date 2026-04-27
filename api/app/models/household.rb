@@ -4,6 +4,7 @@ class Household < ApplicationRecord
   has_many :stores, dependent: :destroy
   has_many :categories, dependent: :destroy
   has_many :items, dependent: :destroy
+  has_many :shopping_trips, dependent: :destroy
 
   validates :name, presence: true
   validates :share_token, presence: true, uniqueness: true

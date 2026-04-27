@@ -126,5 +126,6 @@ export interface UpdateCategoryPayload {
 
 export interface EndShoppingPayload {
   purchased_item_ids: string[];
+  skipped_item_ids?: string[];
   store_id?: string;
 }

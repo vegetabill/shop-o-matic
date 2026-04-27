@@ -41,7 +41,7 @@ interface HouseholdContextValue extends HouseholdState {
   addItem: (payload: CreateItemPayload) => Promise<Item>;
   updateItem: (itemId: string, payload: UpdateItemPayload) => Promise<Item>;
   removeItem: (itemId: string) => Promise<void>;
-  endShopping: (purchasedItemIds: string[], storeId?: string) => Promise<void>;
+  endShopping: (purchasedItemIds: string[], skippedItemIds?: string[], storeId?: string) => Promise<void>;
   searchItems: (query: string) => Promise<Item[]>;
 
   // stores
@@ -172,9 +172,13 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
   );
 
   const endShopping = useCallback(
-    async (purchasedItemIds: string[], storeId?: string) => {
+    async (purchasedItemIds: string[], skippedItemIds?: string[], storeId?: string) => {
       if (!householdId) throw new Error('No active household');
-      await itemsApi.endShopping(householdId, { purchased_item_ids: purchasedItemIds, store_id: storeId });
+      await itemsApi.endShopping(householdId, {
+        purchased_item_ids: purchasedItemIds,
+        skipped_item_ids: skippedItemIds,
+        store_id: storeId,
+      });
       await loadItems();
     },
     [householdId, loadItems],
