@@ -2,17 +2,17 @@ module Api
   module V1
     class ShoppingController < ApplicationController
       # POST /api/v1/households/:household_id/shopping/end
-      # Ends shopping mode: all purchased items get on_list=false, purchased_at=nil
+      # Ends shopping mode: checked-off items get on_list=false so they move to history
       def end
-        purchased_items = current_household.items.where.not(purchased_at: nil)
-        count = purchased_items.count
+        purchased_item_ids = Array(params[:purchased_item_ids])
 
-        purchased_items.update_all(on_list: false, purchased_at: nil, updated_at: Time.current)
+        if purchased_item_ids.any?
+          current_household.items
+            .where(id: purchased_item_ids)
+            .update_all(on_list: false, purchased_at: nil, updated_at: Time.current)
+        end
 
-        render json: {
-          message: "Shopping mode ended",
-          items_cleared: count
-        }, status: :ok
+        render json: { message: "Shopping mode ended" }, status: :ok
       end
     end
   end
