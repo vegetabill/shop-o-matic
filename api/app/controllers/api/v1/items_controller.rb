@@ -31,8 +31,7 @@ module Api
         item.added_by_user = current_user
         item.updated_by_user = current_user
 
-        # Handle store associations
-        store_ids = params[:item][:store_ids] if params[:item]
+        store_ids = params[:store_ids]
 
         ActiveRecord::Base.transaction do
           item.save!
@@ -51,7 +50,7 @@ module Api
       def update
         @item.updated_by_user = current_user
 
-        store_ids = params[:item][:store_ids] if params[:item]
+        store_ids = params[:store_ids]
 
         ActiveRecord::Base.transaction do
           @item.update!(item_params)
