@@ -5,7 +5,10 @@ module Api
 
       # GET /api/v1/households/:household_id/categories
       def index
-        categories = current_household.categories.order(:name)
+        categories = current_household.categories
+          .left_joins(:items)
+          .group(:id)
+          .order("COUNT(items.id) DESC, categories.name ASC")
         render json: categories.map { |c| category_json(c) }
       end
 

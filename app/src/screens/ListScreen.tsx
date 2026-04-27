@@ -73,8 +73,6 @@ export default function ListScreen({ navigation }: any) {
     const grouped: Record<string, Item[]> = {};
     const uncategorized: Item[] = [];
 
-    const sortedCategories = [...categories].sort((a, b) => a.sort_order - b.sort_order);
-
     onListItems.forEach((item) => {
       if (item.category_id) {
         if (!grouped[item.category_id]) grouped[item.category_id] = [];
@@ -84,7 +82,7 @@ export default function ListScreen({ navigation }: any) {
       }
     });
 
-    const result: SectionData[] = sortedCategories
+    const result: SectionData[] = categories
       .filter((cat) => grouped[cat.id]?.length > 0)
       .map((cat) => ({ title: cat.name, data: grouped[cat.id] }));
 
