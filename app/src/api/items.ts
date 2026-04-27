@@ -32,7 +32,7 @@ export async function endShopping(
 }
 
 export async function searchItems(householdId: string, query: string): Promise<Item[]> {
-  return apiClient.get<Item[]>(`/households/${householdId}/items/search`, {
+  return apiClient.get<Item[]>(`/households/${householdId}/items`, {
     params: { q: query },
   });
 }
