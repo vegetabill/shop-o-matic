@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+log/
+tmp/
+.git/
+.gitignore
+README.md
+spec/
+test/
