@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2024_01_01_000007) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_27_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -56,15 +56,19 @@ ActiveRecord::Schema[8.1].define(version: 2024_01_01_000007) do
     t.bigint "category_id"
     t.datetime "created_at", null: false
     t.bigint "household_id", null: false
+    t.datetime "last_purchased_at"
+    t.bigint "last_purchased_store_id"
     t.string "name", null: false
     t.text "notes"
     t.boolean "on_list", default: false, null: false
+    t.string "priority", default: "none", null: false
     t.datetime "purchased_at"
     t.datetime "updated_at", null: false
     t.bigint "updated_by_user_id"
     t.index ["category_id"], name: "index_items_on_category_id"
     t.index ["household_id", "on_list"], name: "index_items_on_household_id_and_on_list"
     t.index ["household_id"], name: "index_items_on_household_id"
+    t.index ["last_purchased_store_id"], name: "index_items_on_last_purchased_store_id"
     t.index ["purchased_at"], name: "index_items_on_purchased_at"
   end
 
@@ -79,14 +83,14 @@ ActiveRecord::Schema[8.1].define(version: 2024_01_01_000007) do
   end
 
   create_table "users", force: :cascade do |t|
+    t.string "auth0_uid", null: false
+    t.string "avatar_url"
     t.datetime "created_at", null: false
     t.string "email", null: false
-    t.string "google_avatar_url"
-    t.string "google_uid", null: false
     t.string "name", null: false
     t.datetime "updated_at", null: false
+    t.index ["auth0_uid"], name: "index_users_on_auth0_uid", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
-    t.index ["google_uid"], name: "index_users_on_google_uid", unique: true
   end
 
   add_foreign_key "categories", "households"
@@ -96,6 +100,7 @@ ActiveRecord::Schema[8.1].define(version: 2024_01_01_000007) do
   add_foreign_key "item_stores", "stores"
   add_foreign_key "items", "categories"
   add_foreign_key "items", "households"
+  add_foreign_key "items", "stores", column: "last_purchased_store_id"
   add_foreign_key "items", "users", column: "added_by_user_id"
   add_foreign_key "items", "users", column: "updated_by_user_id"
   add_foreign_key "stores", "households"
