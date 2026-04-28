@@ -40,7 +40,7 @@ module Api
         end
 
         item.reload
-        render json: item_json(item), status: :created
+        render json: item_json(item, last_purchase_for(item)), status: :created
       rescue ActiveRecord::RecordInvalid => e
         render json: { error: e.message, details: e.record.errors.full_messages }, status: :unprocessable_entity
       end
@@ -57,7 +57,7 @@ module Api
         end
 
         @item.reload
-        render json: item_json(@item)
+        render json: item_json(@item, last_purchase_for(@item))
       rescue ActiveRecord::RecordInvalid => e
         render json: { error: e.message, details: e.record.errors.full_messages }, status: :unprocessable_entity
       end
@@ -65,25 +65,25 @@ module Api
       # POST /api/v1/households/:household_id/items/:id/add_to_list
       def add_to_list
         @item.add_to_list!
-        render json: item_json(@item.reload)
+        render json: item_json(@item.reload, last_purchase_for(@item))
       end
 
       # POST /api/v1/households/:household_id/items/:id/purchase
       def purchase
         @item.purchase!
-        render json: item_json(@item.reload)
+        render json: item_json(@item.reload, last_purchase_for(@item))
       end
 
       # POST /api/v1/households/:household_id/items/:id/unpurchase
       def unpurchase
         @item.unpurchase!
-        render json: item_json(@item.reload)
+        render json: item_json(@item.reload, last_purchase_for(@item))
       end
 
       # POST /api/v1/households/:household_id/items/:id/mark_unavailable
       def mark_unavailable
         @item.mark_unavailable!
-        render json: item_json(@item.reload)
+        render json: item_json(@item.reload, last_purchase_for(@item))
       end
 
       private
@@ -102,6 +102,10 @@ module Api
         valid_store_ids = current_household.stores.where(id: store_ids).pluck(:id)
         item.item_stores.destroy_all
         valid_store_ids.each { |sid| item.item_stores.create!(store_id: sid) }
+      end
+
+      def last_purchase_for(item)
+        batch_last_purchases([item.id])[item.id]
       end
 
       def batch_last_purchases(item_ids)

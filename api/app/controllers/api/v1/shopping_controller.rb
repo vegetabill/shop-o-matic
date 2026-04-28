@@ -9,14 +9,16 @@ module Api
         store              = store_id.present? ? current_household.stores.find_by(id: store_id) : nil
 
         ActiveRecord::Base.transaction do
+          valid_purchased = current_household.items.where(id: purchased_item_ids).pluck(:id)
+          valid_skipped   = current_household.items.where(id: skipped_item_ids).pluck(:id)
+
+          next if valid_purchased.empty? && valid_skipped.empty?
+
           trip = ShoppingTrip.create!(
             household: current_household,
             store: store,
             completed_at: Time.current
           )
-
-          valid_purchased = current_household.items.where(id: purchased_item_ids).pluck(:id)
-          valid_skipped   = current_household.items.where(id: skipped_item_ids).pluck(:id)
 
           valid_purchased.each do |item_id|
             ShoppingTripItem.create!(shopping_trip: trip, item_id: item_id, status: "purchased")

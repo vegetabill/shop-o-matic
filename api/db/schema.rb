@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_27_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_27_000005) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -56,8 +56,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_27_000003) do
     t.bigint "category_id"
     t.datetime "created_at", null: false
     t.bigint "household_id", null: false
-    t.datetime "last_purchased_at"
-    t.bigint "last_purchased_store_id"
     t.string "name", null: false
     t.text "notes"
     t.boolean "on_list", default: false, null: false
@@ -68,8 +66,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_27_000003) do
     t.index ["category_id"], name: "index_items_on_category_id"
     t.index ["household_id", "on_list"], name: "index_items_on_household_id_and_on_list"
     t.index ["household_id"], name: "index_items_on_household_id"
-    t.index ["last_purchased_store_id"], name: "index_items_on_last_purchased_store_id"
     t.index ["purchased_at"], name: "index_items_on_purchased_at"
+  end
+
+  create_table "shopping_trip_items", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "item_id", null: false
+    t.bigint "shopping_trip_id", null: false
+    t.string "status", null: false
+    t.datetime "updated_at", null: false
+    t.index ["item_id"], name: "index_shopping_trip_items_on_item_id"
+    t.index ["shopping_trip_id", "item_id"], name: "index_shopping_trip_items_on_shopping_trip_id_and_item_id", unique: true
+    t.index ["shopping_trip_id"], name: "index_shopping_trip_items_on_shopping_trip_id"
+  end
+
+  create_table "shopping_trips", force: :cascade do |t|
+    t.datetime "completed_at", null: false
+    t.datetime "created_at", null: false
+    t.bigint "household_id", null: false
+    t.bigint "store_id"
+    t.datetime "updated_at", null: false
+    t.index ["household_id"], name: "index_shopping_trips_on_household_id"
+    t.index ["store_id"], name: "index_shopping_trips_on_store_id"
   end
 
   create_table "stores", force: :cascade do |t|
@@ -100,8 +118,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_27_000003) do
   add_foreign_key "item_stores", "stores"
   add_foreign_key "items", "categories"
   add_foreign_key "items", "households"
-  add_foreign_key "items", "stores", column: "last_purchased_store_id"
   add_foreign_key "items", "users", column: "added_by_user_id"
   add_foreign_key "items", "users", column: "updated_by_user_id"
+  add_foreign_key "shopping_trip_items", "items"
+  add_foreign_key "shopping_trip_items", "shopping_trips"
+  add_foreign_key "shopping_trips", "households"
+  add_foreign_key "shopping_trips", "stores", on_delete: :nullify
   add_foreign_key "stores", "households"
 end
