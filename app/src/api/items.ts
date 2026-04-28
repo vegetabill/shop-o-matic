@@ -20,8 +20,8 @@ export async function updateItem(
   return apiClient.put<Item>(`/households/${householdId}/items/${itemId}`, payload);
 }
 
-export async function deleteItem(householdId: string, itemId: string): Promise<void> {
-  return apiClient.delete<void>(`/households/${householdId}/items/${itemId}`);
+export async function markItemUnavailable(householdId: string, itemId: string): Promise<Item> {
+  return apiClient.post<Item>(`/households/${householdId}/items/${itemId}/mark_unavailable`);
 }
 
 export async function endShopping(

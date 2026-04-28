@@ -165,8 +165,8 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
   const removeItem = useCallback(
     async (itemId: string) => {
       if (!householdId) throw new Error('No active household');
-      await itemsApi.deleteItem(householdId, itemId);
-      setItems((prev) => prev.filter((i) => i.id !== itemId));
+      const updated = await itemsApi.markItemUnavailable(householdId, itemId);
+      setItems((prev) => prev.map((i) => (i.id === itemId ? updated : i)));
     },
     [householdId],
   );
