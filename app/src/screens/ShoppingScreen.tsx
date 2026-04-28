@@ -73,13 +73,13 @@ export default function ShoppingScreen({ navigation }: any) {
   const handleDoneShopping = useCallback(async () => {
     setIsDone(true);
     try {
-      await endShopping(Array.from(purchasedIds), selectedStore?.id);
+      await endShopping(Array.from(purchasedIds), Array.from(hiddenIds), selectedStore?.id);
       navigation.goBack();
     } catch (e: any) {
       Alert.alert('Error', e.message ?? 'Failed to end shopping session.');
       setIsDone(false);
     }
-  }, [endShopping, purchasedIds, navigation]);
+  }, [endShopping, purchasedIds, hiddenIds, selectedStore, navigation]);
 
   // ── Store picker ──────────────────────────────────────────────────────────
 

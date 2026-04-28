@@ -9,7 +9,7 @@ module Api
       #   ?q=search      — search by name (for autocomplete)
       def index
         items = current_household.items
-          .includes(:category, :stores, :last_purchased_store)
+          .includes(:category, :stores)
           .order(:name)
 
         if params[:on_list].present?
@@ -21,7 +21,8 @@ module Api
           items = items.search(params[:q])
         end
 
-        render json: items.map { |item| item_json(item) }
+        last_purchases = batch_last_purchases(items.map(&:id))
+        render json: items.map { |item| item_json(item, last_purchases[item.id]) }
       end
 
       # POST /api/v1/households/:household_id/items
@@ -35,13 +36,11 @@ module Api
 
         ActiveRecord::Base.transaction do
           item.save!
-          if store_ids.present?
-            assign_stores(item, store_ids)
-          end
+          assign_stores(item, store_ids) if store_ids.present?
         end
 
         item.reload
-        render json: item_json(item), status: :created
+        render json: item_json(item, last_purchase_for(item)), status: :created
       rescue ActiveRecord::RecordInvalid => e
         render json: { error: e.message, details: e.record.errors.full_messages }, status: :unprocessable_entity
       end
@@ -54,13 +53,11 @@ module Api
 
         ActiveRecord::Base.transaction do
           @item.update!(item_params)
-          if store_ids
-            assign_stores(@item, store_ids)
-          end
+          assign_stores(@item, store_ids) if store_ids
         end
 
         @item.reload
-        render json: item_json(@item)
+        render json: item_json(@item, last_purchase_for(@item))
       rescue ActiveRecord::RecordInvalid => e
         render json: { error: e.message, details: e.record.errors.full_messages }, status: :unprocessable_entity
       end
@@ -68,25 +65,25 @@ module Api
       # POST /api/v1/households/:household_id/items/:id/add_to_list
       def add_to_list
         @item.add_to_list!
-        render json: item_json(@item.reload)
+        render json: item_json(@item.reload, last_purchase_for(@item))
       end
 
       # POST /api/v1/households/:household_id/items/:id/purchase
       def purchase
         @item.purchase!
-        render json: item_json(@item.reload)
+        render json: item_json(@item.reload, last_purchase_for(@item))
       end
 
       # POST /api/v1/households/:household_id/items/:id/unpurchase
       def unpurchase
         @item.unpurchase!
-        render json: item_json(@item.reload)
+        render json: item_json(@item.reload, last_purchase_for(@item))
       end
 
       # POST /api/v1/households/:household_id/items/:id/mark_unavailable
       def mark_unavailable
         @item.mark_unavailable!
-        render json: item_json(@item.reload)
+        render json: item_json(@item.reload, last_purchase_for(@item))
       end
 
       private
@@ -102,15 +99,31 @@ module Api
       end
 
       def assign_stores(item, store_ids)
-        # Validate all store_ids belong to this household
         valid_store_ids = current_household.stores.where(id: store_ids).pluck(:id)
         item.item_stores.destroy_all
-        valid_store_ids.each do |store_id|
-          item.item_stores.create!(store_id: store_id)
+        valid_store_ids.each { |sid| item.item_stores.create!(store_id: sid) }
+      end
+
+      def last_purchase_for(item)
+        batch_last_purchases([item.id])[item.id]
+      end
+
+      def batch_last_purchases(item_ids)
+        return {} if item_ids.empty?
+
+        rows = ShoppingTripItem
+          .joins(:shopping_trip)
+          .joins("LEFT JOIN stores ON stores.id = shopping_trips.store_id")
+          .where(shopping_trip_items: { item_id: item_ids, status: "purchased" })
+          .select("DISTINCT ON (shopping_trip_items.item_id) shopping_trip_items.item_id, shopping_trips.completed_at AS purchased_at, stores.name AS store_name")
+          .order("shopping_trip_items.item_id, shopping_trips.completed_at DESC")
+
+        rows.each_with_object({}) do |row, h|
+          h[row.item_id] = { purchased_at: row.purchased_at, store_name: row.store_name }
         end
       end
 
-      def item_json(item)
+      def item_json(item, last_purchase = nil)
         {
           id: item.id,
           name: item.name,
@@ -123,8 +136,8 @@ module Api
           category_id: item.category_id,
           category_name: item.category&.name,
           stores: item.stores.map { |s| { store_id: s.id, store_name: s.name, store_color: s.color } },
-          last_purchased_at: item.last_purchased_at,
-          last_purchased_store_name: item.last_purchased_store&.name,
+          last_purchased_at: last_purchase&.[](:purchased_at),
+          last_purchased_store_name: last_purchase&.[](:store_name),
           added_by_user_id: item.added_by_user_id,
           updated_by_user_id: item.updated_by_user_id,
           created_at: item.created_at,
