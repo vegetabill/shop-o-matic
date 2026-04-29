@@ -8,6 +8,7 @@ import {
   Platform,
   ScrollView,
   SectionList,
+  Share,
   StyleSheet,
   Switch,
   Text,
@@ -16,7 +17,6 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as Clipboard from 'expo-clipboard';
 import { useHousehold } from '../context/HouseholdContext';
 import { Item, Category, Store, ItemPriority } from '../types';
 import AutocompleteInput from '../components/AutocompleteInput';
@@ -199,8 +199,10 @@ export default function ListScreen({ navigation }: any) {
   const handleShare = useCallback(async () => {
     if (!activeHousehold) return;
     const url = `${HOUSEHOLD_JOIN_BASE_URL}/${activeHousehold.share_token}`;
-    await Clipboard.setStringAsync(url);
-    Alert.alert('Copied!', 'Household join link copied to clipboard.');
+    await Share.share({
+      message: `Join my household "${activeHousehold.name}" on Shop-o-matic: ${url}`,
+      url,
+    });
   }, [activeHousehold]);
 
   const handleStartShopping = useCallback(() => {
