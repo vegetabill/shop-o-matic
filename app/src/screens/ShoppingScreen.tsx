@@ -4,12 +4,12 @@ import {
   Alert,
   FlatList,
   Platform,
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useHousehold } from '../context/HouseholdContext';
 import { Item, Store } from '../types';
 

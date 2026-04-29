@@ -10,6 +10,3 @@ export async function exchangeAuth0Token(idToken: string): Promise<AuthResponse>
   return apiClient.post<AuthResponse>('/auth/auth0', { id_token: idToken });
 }
 
-export async function mockSignIn(): Promise<AuthResponse> {
-  return apiClient.post<AuthResponse>('/auth/mock', {});
-}
