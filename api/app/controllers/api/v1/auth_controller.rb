@@ -3,18 +3,6 @@ module Api
     class AuthController < ApplicationController
       skip_before_action :authenticate_user!
 
-      # POST /api/v1/auth/mock (development only)
-      def mock
-        user = User.find_or_create_by!(email: "dev@example.com") do |u|
-          u.auth0_uid = "dev|mock_uid"
-          u.name = "Dev User"
-          u.avatar_url = nil
-        end
-
-        jwt = JwtService.token_for_user(user)
-        render json: { token: jwt, user: user_json(user) }, status: :ok
-      end
-
       # POST /api/v1/auth/auth0
       def auth0
         id_token = params[:id_token]

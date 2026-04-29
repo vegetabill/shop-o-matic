@@ -10,17 +10,8 @@ import {
 import { useAuth } from '../context/AuthContext';
 
 export default function LoginScreen() {
-  const { signIn, mockSignIn, isLoading, signInError } = useAuth();
+  const { signIn, isLoading, signInError } = useAuth();
   const [isSigning, setIsSigning] = React.useState(false);
-
-  const handleMockSignIn = async () => {
-    setIsSigning(true);
-    try {
-      await mockSignIn();
-    } finally {
-      setIsSigning(false);
-    }
-  };
 
   const handleSignIn = async () => {
     setIsSigning(true);
@@ -71,17 +62,6 @@ export default function LoginScreen() {
           <Text style={styles.disclaimer}>
             By continuing, you agree to our Terms of Service and Privacy Policy.
           </Text>
-
-          {__DEV__ && (
-            <TouchableOpacity
-              style={styles.mockButton}
-              onPress={handleMockSignIn}
-              disabled={isSigning}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.mockButtonText}>Dev Sign In (skip Auth0)</Text>
-            </TouchableOpacity>
-          )}
         </View>
       </View>
     </SafeAreaView>
@@ -157,17 +137,5 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
     textAlign: 'center',
     lineHeight: 18,
-  },
-  mockButton: {
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#C7C7CC',
-    borderStyle: 'dashed',
-  },
-  mockButtonText: {
-    fontSize: 14,
-    color: '#8E8E93',
   },
 });

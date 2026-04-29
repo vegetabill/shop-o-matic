@@ -15,7 +15,7 @@ import {
   makeRedirectUri,
 } from 'expo-auth-session';
 import { AuthState, AuthAction, User } from '../types';
-import { exchangeAuth0Token, mockSignIn as mockSignInApi } from '../api/auth';
+import { exchangeAuth0Token } from '../api/auth';
 import { setOnUnauthorizedCallback } from '../api/client';
 import {
   SECURE_STORE_JWT_KEY,
@@ -31,7 +31,6 @@ const REDIRECT_URI = makeRedirectUri({ scheme: 'com.shopomatic.app' });
 interface AuthContextValue extends AuthState {
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
-  mockSignIn: () => Promise<void>;
   signInError: string | null;
 }
 
@@ -153,20 +152,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await promptAsync();
   }, [promptAsync]);
 
-  const mockSignIn = useCallback(async () => {
-    setSignInError(null);
-    try {
-      const authResponse = await mockSignInApi();
-      await Promise.all([
-        SecureStore.setItemAsync(SECURE_STORE_JWT_KEY, authResponse.token),
-        SecureStore.setItemAsync(SECURE_STORE_USER_KEY, JSON.stringify(authResponse.user)),
-      ]);
-      dispatch({ type: 'SET_USER', payload: { user: authResponse.user, token: authResponse.token } });
-    } catch (error: any) {
-      setSignInError(error.message ?? 'Mock sign-in failed');
-    }
-  }, []);
-
   const signOut = useCallback(async () => {
     await Promise.all([
       SecureStore.deleteItemAsync(SECURE_STORE_JWT_KEY),
@@ -180,7 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [signOut]);
 
   return (
-    <AuthContext.Provider value={{ ...state, signIn, signOut, mockSignIn, signInError }}>
+    <AuthContext.Provider value={{ ...state, signIn, signOut, signInError }}>
       {children}
     </AuthContext.Provider>
   );

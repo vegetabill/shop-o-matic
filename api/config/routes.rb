@@ -3,7 +3,6 @@ Rails.application.routes.draw do
     namespace :v1 do
       # Auth
       post "auth/auth0", to: "auth#auth0"
-      post "auth/mock", to: "auth#mock" if Rails.env.development?
 
       # Households
       resources :households, only: [:index, :create, :show] do
