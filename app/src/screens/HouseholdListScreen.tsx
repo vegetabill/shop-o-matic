@@ -16,7 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useHousehold } from '../context/HouseholdContext';
 import { Household } from '../types';
 
-export default function HouseholdListScreen() {
+export default function HouseholdListScreen({ navigation }: any) {
   const {
     households,
     isLoading,
@@ -67,14 +67,12 @@ export default function HouseholdListScreen() {
 
   const handleSelectHousehold = (household: Household) => {
     setActiveHousehold(household);
+    navigation.goBack();
   };
 
   const renderHousehold = ({ item }: { item: Household }) => (
     <TouchableOpacity
-      style={[
-        styles.householdRow,
-        activeHousehold?.id === item.id && styles.activeRow,
-      ]}
+      style={styles.householdRow}
       onPress={() => handleSelectHousehold(item)}
       activeOpacity={0.7}
     >
@@ -84,9 +82,6 @@ export default function HouseholdListScreen() {
       <View style={styles.householdInfo}>
         <Text style={styles.householdName}>{item.name}</Text>
       </View>
-      {activeHousehold?.id === item.id && (
-        <Text style={styles.activeIndicator}>✓</Text>
-      )}
     </TouchableOpacity>
   );
 
@@ -299,9 +294,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#E5E5EA',
   },
-  activeRow: {
-    backgroundColor: '#F0F8FF',
-  },
   householdIcon: {
     width: 40,
     height: 40,
@@ -321,11 +313,6 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '500',
     color: '#1C1C1E',
-  },
-  activeIndicator: {
-    fontSize: 18,
-    color: '#007AFF',
-    fontWeight: '600',
   },
   buttonContainer: {
     padding: 16,

@@ -256,11 +256,15 @@ export default function ListScreen({ navigation }: any) {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
+        <TouchableOpacity
+          style={styles.headerLeft}
+          onPress={() => navigation.navigate('HouseholdList')}
+          activeOpacity={0.7}
+        >
           <Text style={styles.householdName} numberOfLines={1}>
-            {activeHousehold.name}
+            ‹ {activeHousehold.name}
           </Text>
-        </View>
+        </TouchableOpacity>
         <View style={styles.headerRight}>
           <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
             <Text style={styles.shareButtonText}>Share</Text>
