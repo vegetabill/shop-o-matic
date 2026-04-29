@@ -20,7 +20,6 @@ import * as Clipboard from 'expo-clipboard';
 import { useHousehold } from '../context/HouseholdContext';
 import { Item, Category, Store, ItemPriority } from '../types';
 import AutocompleteInput from '../components/AutocompleteInput';
-import StoreTag from '../components/StoreTag';
 import { HOUSEHOLD_JOIN_BASE_URL } from '../constants/config';
 
 function relativeTime(iso: string): string {
@@ -53,7 +52,7 @@ interface EditModalState {
 
 const PRIORITY_OPTIONS: { value: ItemPriority; label: string; color: string }[] = [
   { value: 'none', label: 'None', color: '#8E8E93' },
-  { value: 'low', label: 'On Sale', color: '#007AFF' },
+  { value: 'low', label: 'On Sale', color: '#C7C7CC' },
   { value: 'high', label: 'Need Now', color: '#FF3B30' },
 ];
 
@@ -216,6 +215,7 @@ export default function ListScreen({ navigation }: any) {
 
   const renderItem = ({ item }: { item: Item }) => {
     const priorityOption = PRIORITY_OPTIONS.find((p) => p.value === item.priority);
+    const isLow = item.priority === 'low';
     const showPriority = item.priority && item.priority !== 'none';
     return (
       <TouchableOpacity
@@ -227,18 +227,11 @@ export default function ListScreen({ navigation }: any) {
           <View style={[styles.priorityBar, { backgroundColor: priorityOption!.color }]} />
         )}
         <View style={styles.itemContent}>
-          <Text style={styles.itemName}>{item.name}</Text>
+          <Text style={[styles.itemName, isLow && styles.itemNameLow]}>{item.name}</Text>
           {item.notes ? (
             <Text style={styles.itemNotes} numberOfLines={1}>
               {item.notes}
             </Text>
-          ) : null}
-          {item.stores.length > 0 ? (
-            <View style={styles.storeTagRow}>
-              {item.stores.map((s) => (
-                <StoreTag key={s.store_id} store={s} />
-              ))}
-            </View>
           ) : null}
         </View>
         <Text style={styles.chevron}>›</Text>
@@ -577,15 +570,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#1C1C1E',
   },
+  itemNameLow: {
+    color: '#8E8E93',
+    fontWeight: '400',
+  },
   itemNotes: {
     fontSize: 13,
     color: '#8E8E93',
     marginTop: 2,
-  },
-  storeTagRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 4,
   },
   chevron: {
     fontSize: 20,
