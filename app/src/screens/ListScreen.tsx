@@ -87,6 +87,10 @@ export default function ListScreen({ navigation }: any) {
     [items],
   );
 
+  const PRIORITY_ORDER: Record<string, number> = { high: 0, none: 1, low: 2 };
+  const byPriority = (a: Item, b: Item) =>
+    (PRIORITY_ORDER[a.priority] ?? 2) - (PRIORITY_ORDER[b.priority] ?? 2);
+
   const sections = useMemo<SectionData[]>(() => {
     const grouped: Record<string, Item[]> = {};
     const uncategorized: Item[] = [];
@@ -102,10 +106,10 @@ export default function ListScreen({ navigation }: any) {
 
     const result: SectionData[] = categories
       .filter((cat) => grouped[cat.id]?.length > 0)
-      .map((cat) => ({ title: cat.name, data: grouped[cat.id] }));
+      .map((cat) => ({ title: cat.name, data: [...grouped[cat.id]].sort(byPriority) }));
 
     if (uncategorized.length > 0) {
-      result.push({ title: 'Uncategorized', data: uncategorized });
+      result.push({ title: 'Uncategorized', data: [...uncategorized].sort(byPriority) });
     }
 
     return result;
