@@ -6,6 +6,49 @@ A shopping list app for households to keep track of items needed to buy.
 
 The API backend app is powered by Ruby on Rails and a front end of a React Native app.
 
+## Home Assistant Integration
+
+Link your HA instance to an MQTT broker. 
+
+
+### HA Automation
+
+Add an automation to republish any shopping_list events into a topic of your choice. 
+
+Check your DB for household_id
+
+```json
+{
+  "household_id": "xxxxxx-e126-4dfb-aa3c-123456789",
+  "action": "{{trigger.event.data.action}}",
+  "item": "{{trigger.event.data.item.name}}"
+}
+```
+
+### Rails Config
+
+Configure the necessary MQTT* env vars.
+
+```
+MQTT_HOST: xxxx
+MQTT*
+```
+
+The incoming MQTT payload you send will look like this:
+
+```json
+{ 
+  "action": "add", 
+  "item": "impossible burgers",
+  "household_id": "xxxxxx-e126-4dfb-aa3c-123456789"
+}
+```
+
+The `item` will be added in the same way it would be if typed into the mobile app and added.
+
+Currently, only `add` is supported so you'll have to clear the list periodically.
+
+
 ## General Features / Setup
 
 - You can login using your Google Account
