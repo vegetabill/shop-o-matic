@@ -1,0 +1,18 @@
+# Node
+app/node_modules
+app/.expo
+app/dist
+
+# Rails
+api/.env
+api/.env.*
+!api/.env.example
+api/log/
+api/tmp/
+api/public/
+
+# Repo
+.git
+.claude
+.vscode
+*.md

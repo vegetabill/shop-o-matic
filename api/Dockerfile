@@ -48,4 +48,5 @@ ENV RAILS_ENV=production \
 
 EXPOSE 8080
 
+ENTRYPOINT ["/app/bin/docker-entrypoint"]
 CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]

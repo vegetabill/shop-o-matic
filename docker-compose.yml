@@ -1,0 +1,47 @@
+services:
+  db:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-shopomatic}
+      POSTGRES_DB: ${POSTGRES_DB:-shop_o_matic_production}
+      POSTGRES_HOST_AUTH_METHOD: trust
+    command: postgres -c unix_socket_permissions=0777
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - postgres_socket:/var/run/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # API base URL baked into the Expo web build; default is same-origin /api/v1
+        EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-/api/v1}
+    ports:
+      - "${PORT:-8080}:8080"
+    environment:
+      DB_HOST: /var/run/postgresql
+      DB_USERNAME: ${POSTGRES_USER:-shopomatic}
+      DB_NAME: ${POSTGRES_DB:-shop_o_matic_production}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:?SECRET_KEY_BASE is required}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      AUTH0_DOMAIN: ${AUTH0_DOMAIN:?AUTH0_DOMAIN is required}
+      AUTH0_AUDIENCE: ${AUTH0_AUDIENCE:?AUTH0_AUDIENCE is required}
+      FORCE_SSL: "false"
+      RAILS_MAX_THREADS: ${RAILS_MAX_THREADS:-5}
+      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-2}
+    volumes:
+      - postgres_socket:/var/run/postgresql
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  postgres_socket:

@@ -16,8 +16,8 @@ Rails.application.configure do
   # Do not fallback to assets pipeline if a precompiled asset is missed.
   config.assets.compile = false if config.respond_to?(:assets)
 
-  # Force all access to the app over SSL
-  config.force_ssl = true
+  # Force all access to the app over SSL (disable when SSL is terminated by a proxy)
+  config.force_ssl = ENV.fetch("FORCE_SSL", "true") == "true"
 
   config.logger = ActiveSupport::Logger.new($stdout)
     .tap  { |logger| logger.formatter = ::Logger::Formatter.new }
