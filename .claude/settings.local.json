@@ -4,7 +4,12 @@
       "Bash(bin/rails db:migrate)",
       "Bash(rbenv version *)",
       "Bash(asdf current *)",
-      "Bash(bundle exec *)"
+      "Bash(bundle exec *)",
+      "Bash(docker compose up *)",
+      "Bash(read f *)",
+      "Bash(python3 -c ' *)",
+      "Bash(docker compose down *)",
+      "Bash(curl -sv http://localhost:8080/health)"
     ],
     "defaultMode": "bypassPermissions"
   }

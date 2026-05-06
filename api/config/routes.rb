@@ -34,4 +34,7 @@ Rails.application.routes.draw do
 
   # Health check
   get "/health", to: proc { [200, {}, [{ status: "ok" }.to_json]] }
+
+  # Landing page
+  root "home#index"
 end
