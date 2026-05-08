@@ -9,7 +9,8 @@
       "Bash(read f *)",
       "Bash(python3 -c ' *)",
       "Bash(docker compose down *)",
-      "Bash(curl -sv http://localhost:8080/health)"
+      "Bash(curl -sv http://localhost:8080/health)",
+      "Bash(bundle install *)"
     ],
     "defaultMode": "bypassPermissions"
   }

@@ -55,7 +55,9 @@ COPY --from=rails-build /app /app
 COPY --from=rails-build /usr/local/bundle /usr/local/bundle
 
 # Expo web build → served as static files by Rails
+# Remove index.html so Rails routes / to home#index instead of the static file
 COPY --from=expo-build /expo/dist /app/public
+RUN rm -f /app/public/index.html
 
 RUN bundle config set --local deployment true && \
     bundle config set --local without 'development test' && \

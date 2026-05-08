@@ -1,14 +1,30 @@
+require "rqrcode"
+
 class HomeController < ActionController::Base
   protect_from_forgery with: :null_session
 
   def index
-    @app_url = ENV.fetch("EXPO_APP_URL", nil)
-    render html: landing_html.html_safe, layout: false
+    expo_url = ENV.fetch("EXPO_APP_URL") do
+      host = request.host
+      port = request.port
+      standard_port = request.ssl? ? 443 : 80
+      port == standard_port ? "exp://#{host}" : "exp://#{host}:#{port}"
+    end
+
+    qr_svg = RQRCode::QRCode.new(expo_url).as_svg(
+      color: "1C1C1E",
+      shape_rendering: "crispEdges",
+      module_size: 6,
+      standalone: true,
+      use_path: true
+    )
+
+    render html: landing_html(expo_url, qr_svg).html_safe, layout: false
   end
 
   private
 
-  def landing_html
+  def landing_html(expo_url, qr_svg)
     <<~HTML
       <!DOCTYPE html>
       <html lang="en">
@@ -39,74 +55,53 @@ class HomeController < ActionController::Base
             box-shadow: 0 2px 20px rgba(0,0,0,0.08);
           }
 
-          .icon {
-            font-size: 72px;
-            line-height: 1;
-            margin-bottom: 20px;
-          }
-
           h1 {
-            font-size: 34px;
+            font-size: 28px;
             font-weight: 700;
             color: #1C1C1E;
             letter-spacing: -0.5px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
           }
 
           .tagline {
-            font-size: 17px;
+            font-size: 15px;
             color: #8E8E93;
-            margin-bottom: 40px;
-            line-height: 1.4;
+            margin-bottom: 32px;
           }
 
-          .btn {
-            display: inline-block;
-            background: #007AFF;
-            color: #FFFFFF;
-            font-size: 17px;
-            font-weight: 600;
-            text-decoration: none;
-            padding: 14px 36px;
+          .qr {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+          }
+
+          .qr svg {
             border-radius: 12px;
-            transition: opacity 0.15s;
           }
 
-          .btn:hover { opacity: 0.85; }
-
-          .app-url {
-            margin-top: 16px;
+          .expo-url {
             font-size: 13px;
-            color: #C7C7CC;
+            color: #8E8E93;
             word-break: break-all;
           }
 
-          .no-link {
-            font-size: 15px;
+          .hint {
+            margin-top: 12px;
+            font-size: 13px;
             color: #C7C7CC;
           }
         </style>
       </head>
       <body>
         <div class="card">
-          <div class="icon">🛒</div>
           <h1>Shop-o-matic</h1>
-          <p class="tagline">The smart household shopping list</p>
-          #{app_url_block}
+          <p class="tagline">Scan with Expo Go to open the app</p>
+          <div class="qr">#{qr_svg}</div>
+          <p class="expo-url">#{ERB::Util.html_escape(expo_url)}</p>
+          <p class="hint">Open Expo Go &rarr; scan this code</p>
         </div>
       </body>
       </html>
     HTML
-  end
-
-  def app_url_block
-    if @app_url.present?
-      <<~HTML
-        <a href="#{ERB::Util.html_escape(@app_url)}" class="btn">Get the App</a>
-        <p class="app-url">#{ERB::Util.html_escape(@app_url)}</p>
-      HTML
-    else
-      '<p class="no-link">Run <code>make build-web</code> to build the app.</p>'
-    end
   end
 end

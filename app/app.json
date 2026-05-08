@@ -12,14 +12,16 @@
       "resizeMode": "contain",
       "backgroundColor": "#F2F2F7"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.shopomatic.app",
       "infoPlist": {
         "NSCameraUsageDescription": "Camera is not used by this app.",
         "NSPhotoLibraryUsageDescription": "Photo library is not used by this app."
-      },
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -36,8 +38,15 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "YOUR_EAS_PROJECT_ID"
+        "projectId": "20a706e9-ac86-4193-a6ba-f09be69ec3ec"
       }
+    },
+    "owner": "immutabill",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/20a706e9-ac86-4193-a6ba-f09be69ec3ec"
     }
   }
 }

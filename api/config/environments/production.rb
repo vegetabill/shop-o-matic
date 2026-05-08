@@ -19,6 +19,7 @@ Rails.application.configure do
   # Force all access to the app over SSL (disable when SSL is terminated by a proxy)
   config.force_ssl = ENV.fetch("FORCE_SSL", "true") == "true"
 
+  $stdout.sync = true
   config.logger = ActiveSupport::Logger.new($stdout)
     .tap  { |logger| logger.formatter = ::Logger::Formatter.new }
     .then { |logger| ActiveSupport::TaggedLogging.new(logger) }

@@ -1,14 +1,19 @@
 require 'mqtt'
 
-mqtt_host  = ENV.fetch('MQTT_HOST', 'localhost')
+mqtt_host  = ENV['MQTT_HOST']
 mqtt_port  = ENV.fetch('MQTT_PORT', 1883).to_i
 mqtt_topic = ENV.fetch('MQTT_TOPIC', 'shop-o-matic/#')
 mqtt_user  = ENV['MQTT_USERNAME']
 mqtt_pass  = ENV['MQTT_PASSWORD']
 
+unless mqtt_host
+  Rails.logger.info "[MQTT] MQTT_HOST not set, listener disabled"
+  return
+end
+
 Thread.new do
   begin
-    connect_opts = { host: mqtt_host, port: mqtt_port, connect_timeout: 5 }
+    connect_opts = { host: mqtt_host, port: mqtt_port, connect_timeout: 5, version: :mqtt311 }
     connect_opts[:username] = mqtt_user if mqtt_user.present?
     connect_opts[:password] = mqtt_pass if mqtt_pass.present?
 
