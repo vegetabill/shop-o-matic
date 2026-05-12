@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_USER: postgres
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - pg_socket:/var/run/postgresql
+
+  api:
+    build:
+      context: ./api
+      target: build
+    command: bundle exec rails server -b 0.0.0.0 -p 3000
+    working_dir: /app
+    environment:
+      RAILS_ENV: development
+      DB_SOCKET_DIR: /var/run/postgresql
+      JWT_SECRET: dev-secret-change-me
+      PORT: 3000
+      RAILS_LOG_TO_STDOUT: "true"
+    volumes:
+      - ./api:/app
+      - bundle_cache:/usr/local/bundle
+      - pg_socket:/var/run/postgresql
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+volumes:
+  pg_data:
+  pg_socket:
+  bundle_cache:

@@ -2,21 +2,37 @@ default: &default
   adapter: postgresql
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+development:
+  <<: *default
+  # Unix socket: set DB_SOCKET_DIR (e.g. /var/run/postgresql) to skip TCP host/port/password.
+  # TCP: set DB_HOST + optionally DB_PORT, DB_USERNAME, DB_PASSWORD instead.
+  <% if ENV["DB_SOCKET_DIR"] %>
+  host: <%= ENV["DB_SOCKET_DIR"] %>
+  <% else %>
   host: <%= ENV.fetch("DB_HOST") { "localhost" } %>
   port: <%= ENV.fetch("DB_PORT") { 5432 } %>
   username: <%= ENV["DB_USERNAME"] %>
   password: <%= ENV["DB_PASSWORD"] %>
-
-development:
-  <<: *default
+  <% end %>
   database: shop_o_matic_development
 
 test:
   <<: *default
+  <% if ENV["DB_SOCKET_DIR"] %>
+  host: <%= ENV["DB_SOCKET_DIR"] %>
+  <% else %>
+  host: <%= ENV.fetch("DB_HOST") { "localhost" } %>
+  port: <%= ENV.fetch("DB_PORT") { 5432 } %>
+  username: <%= ENV["DB_USERNAME"] %>
+  password: <%= ENV["DB_PASSWORD"] %>
+  <% end %>
   database: shop_o_matic_test
 
 production:
   <<: *default
   database: <%= ENV["DB_NAME"] || "shop_o_matic_production" %>
+  host: <%= ENV.fetch("DB_HOST") { "localhost" } %>
+  port: <%= ENV.fetch("DB_PORT") { 5432 } %>
   username: <%= ENV["DB_USERNAME"] %>
   password: <%= ENV["DB_PASSWORD"] %>
