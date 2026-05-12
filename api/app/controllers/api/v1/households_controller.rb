@@ -29,16 +29,16 @@ module Api
 
       # POST /api/v1/households/join
       def join
-        share_token = params[:share_token]
+        code = (params[:join_code] || params[:share_token]).to_s.strip.upcase
 
-        unless share_token.present?
-          return render json: { error: "share_token is required" }, status: :bad_request
+        unless code.present?
+          return render json: { error: "join_code is required" }, status: :bad_request
         end
 
-        household = Household.find_by(share_token: share_token)
+        household = Household.find_by(share_token: code)
 
         unless household
-          return render json: { error: "No household found with that share token" }, status: :not_found
+          return render json: { error: "No household found with that code" }, status: :not_found
         end
 
         if current_user.households.include?(household)
