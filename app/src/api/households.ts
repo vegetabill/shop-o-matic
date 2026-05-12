@@ -9,8 +9,8 @@ export async function createHousehold(name: string): Promise<Household> {
   return apiClient.post<Household>('/households', { name });
 }
 
-export async function joinHousehold(shareToken: string): Promise<Household> {
-  return apiClient.post<Household>('/households/join', { share_token: shareToken });
+export async function joinHousehold(joinCode: string): Promise<Household> {
+  return apiClient.post<Household>('/households/join', { join_code: joinCode });
 }
 
 export async function fetchHousehold(id: string): Promise<Household> {

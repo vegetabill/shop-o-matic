@@ -29,7 +29,7 @@ export default function HouseholdListScreen({ navigation }: any) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [newHouseholdName, setNewHouseholdName] = useState('');
-  const [shareToken, setShareToken] = useState('');
+  const [joinCode, setJoinCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,14 +50,14 @@ export default function HouseholdListScreen({ navigation }: any) {
   };
 
   const handleJoin = async () => {
-    const token = shareToken.trim();
-    if (!token) return;
+    const code = joinCode.trim().toUpperCase();
+    if (!code) return;
     setIsSubmitting(true);
     setError(null);
     try {
-      await joinHousehold(token);
+      await joinHousehold(code);
       setShowJoinModal(false);
-      setShareToken('');
+      setJoinCode('');
     } catch (e: any) {
       setError(e.message ?? 'Failed to join household');
     } finally {
@@ -105,7 +105,7 @@ export default function HouseholdListScreen({ navigation }: any) {
               <Text style={styles.emptyEmoji}>🏠</Text>
               <Text style={styles.emptyTitle}>No Households Yet</Text>
               <Text style={styles.emptySubtitle}>
-                Create a new household or join one with a share token.
+                Create a new household or join one with a 6-character join code.
               </Text>
             </View>
           }
@@ -126,7 +126,7 @@ export default function HouseholdListScreen({ navigation }: any) {
           onPress={() => { setError(null); setShowJoinModal(true); }}
           activeOpacity={0.8}
         >
-          <Text style={styles.secondaryButtonText}>Join with Token</Text>
+          <Text style={styles.secondaryButtonText}>Join with Code</Text>
         </TouchableOpacity>
       </View>
 
@@ -204,16 +204,17 @@ export default function HouseholdListScreen({ navigation }: any) {
               <Text style={styles.errorText}>{error}</Text>
             ) : null}
 
-            <Text style={styles.inputLabel}>Share Token</Text>
+            <Text style={styles.inputLabel}>Join Code</Text>
             <TextInput
-              style={styles.textInput}
-              value={shareToken}
-              onChangeText={setShareToken}
-              placeholder="Paste share token here"
+              style={[styles.textInput, styles.joinCodeInput]}
+              value={joinCode}
+              onChangeText={(t) => setJoinCode(t.toUpperCase())}
+              placeholder="e.g. ABC123"
               placeholderTextColor="#8E8E93"
               autoFocus
-              autoCapitalize="none"
+              autoCapitalize="characters"
               autoCorrect={false}
+              maxLength={6}
               returnKeyType="done"
               onSubmitEditing={handleJoin}
             />
@@ -221,7 +222,7 @@ export default function HouseholdListScreen({ navigation }: any) {
             <TouchableOpacity
               style={[styles.primaryButton, isSubmitting && styles.disabledButton]}
               onPress={handleJoin}
-              disabled={isSubmitting || !shareToken.trim()}
+              disabled={isSubmitting || !joinCode.trim()}
               activeOpacity={0.8}
             >
               {isSubmitting ? (
@@ -394,6 +395,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#1C1C1E',
     backgroundColor: '#F9F9F9',
+  },
+  joinCodeInput: {
+    fontSize: 28,
+    fontWeight: '700',
+    letterSpacing: 8,
+    textAlign: 'center',
+    height: 64,
   },
   errorText: {
     color: '#FF3B30',

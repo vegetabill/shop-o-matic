@@ -202,9 +202,10 @@ export default function ListScreen({ navigation }: any) {
 
   const handleShare = useCallback(async () => {
     if (!activeHousehold) return;
-    const url = `${HOUSEHOLD_JOIN_BASE_URL}/${activeHousehold.share_token}`;
+    const code = activeHousehold.share_token;
+    const url = `${HOUSEHOLD_JOIN_BASE_URL}/${code}`;
     await Share.share({
-      message: `Join my household "${activeHousehold.name}" on Shop-o-matic: ${url}`,
+      message: `Join my household "${activeHousehold.name}" on Shop-o-matic.\nJoin code: ${code}\nOr tap: ${url}`,
       url,
     });
   }, [activeHousehold]);
