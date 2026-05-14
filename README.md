@@ -5,6 +5,54 @@ A simple shopping list app customized for how I manage my lists and pantry.
 I am integrating this with a Home Assistant voice app to replace Alexa.
 
 
+## Building and Pushing the API Docker Image
+
+The API has a multi-stage `Dockerfile` in `api/`. The production image runs on port 8080 as a non-root user.
+
+### Build
+
+```sh
+docker build -t shop-o-matic-api:latest ./api
+```
+
+Tag with a version:
+
+```sh
+docker build -t shop-o-matic-api:1.2.3 ./api
+```
+
+### Push to a registry
+
+Log in if needed:
+
+```sh
+docker login ghcr.io   # or docker login, etc.
+```
+
+Tag and push:
+
+```sh
+IMAGE=ghcr.io/<your-org>/shop-o-matic-api
+
+docker build -t $IMAGE:latest -t $IMAGE:1.2.3 ./api
+docker push $IMAGE:latest
+docker push $IMAGE:1.2.3
+```
+
+### Multi-platform build (linux/amd64 + linux/arm64)
+
+Use `buildx` if your deployment target differs from your local machine (e.g. building on Apple Silicon for a cloud host):
+
+```sh
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  -t $IMAGE:latest \
+  --push \
+  ./api
+```
+
+---
+
 ## Publishing a New Version
 
 The app uses [EAS (Expo Application Services)](https://expo.dev/eas) for builds and OTA updates.
