@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Updates from 'expo-updates';
 import { useHousehold } from '../context/HouseholdContext';
+import { useAuth } from '../context/AuthContext';
 import { Household } from '../types';
 
 export default function HouseholdListScreen({ navigation }: any) {
@@ -28,6 +29,14 @@ export default function HouseholdListScreen({ navigation }: any) {
     setActiveHousehold,
     activeHousehold,
   } = useHousehold();
+  const { signOut } = useAuth();
+
+  const handleSignOut = () => {
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Sign Out', style: 'destructive', onPress: signOut },
+    ]);
+  };
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
@@ -139,6 +148,13 @@ export default function HouseholdListScreen({ navigation }: any) {
           activeOpacity={0.8}
         >
           <Text style={styles.secondaryButtonText}>Join with Code</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.signOutButton}
+          onPress={handleSignOut}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.signOutButtonText}>Sign Out</Text>
         </TouchableOpacity>
         <Text style={styles.versionText}>
           {Updates.updateId ? Updates.updateId.slice(0, 8) : 'dev'}
@@ -365,6 +381,17 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.6,
+  },
+  signOutButton: {
+    borderRadius: 12,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  signOutButtonText: {
+    color: '#FF3B30',
+    fontSize: 17,
+    fontWeight: '600',
   },
   modalOverlay: {
     flex: 1,
