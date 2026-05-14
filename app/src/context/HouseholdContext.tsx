@@ -106,7 +106,10 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
     try {
       const data = await householdsApi.fetchHouseholds();
       dispatch({ type: 'SET_HOUSEHOLDS', payload: data });
-      if (data.length === 1 && !state.activeHousehold) {
+      if (state.activeHousehold) {
+        const refreshed = data.find((h) => h.id === state.activeHousehold!.id);
+        if (refreshed) dispatch({ type: 'SET_ACTIVE_HOUSEHOLD', payload: refreshed });
+      } else if (data.length === 1) {
         dispatch({ type: 'SET_ACTIVE_HOUSEHOLD', payload: data[0] });
       }
     } catch {
