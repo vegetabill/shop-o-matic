@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Updates from 'expo-updates';
 import { useHousehold } from '../context/HouseholdContext';
 import { Household } from '../types';
 
@@ -139,6 +140,9 @@ export default function HouseholdListScreen({ navigation }: any) {
         >
           <Text style={styles.secondaryButtonText}>Join with Code</Text>
         </TouchableOpacity>
+        <Text style={styles.versionText}>
+          {Updates.updateId ? Updates.updateId.slice(0, 8) : 'dev'}
+        </Text>
       </View>
 
       {/* Create Household Modal */}
@@ -448,5 +452,11 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  versionText: {
+    textAlign: 'center',
+    fontSize: 11,
+    color: '#C7C7CC',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
 });
