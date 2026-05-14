@@ -28,6 +28,8 @@ import * as categoriesApi from '../api/categories';
 import { useAuth } from './AuthContext';
 
 interface HouseholdContextValue extends HouseholdState {
+  loadError: string | null;
+
   // household ops
   loadHouseholds: () => Promise<void>;
   createHousehold: (name: string) => Promise<void>;
@@ -92,6 +94,8 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
   const { isAuthenticated } = useAuth();
   const [state, dispatch] = useReducer(householdReducer, initialHouseholdState);
 
+  const [loadError, setLoadError] = useState<string | null>(null);
+
   const [items, setItems] = useState<Item[]>([]);
   const [isLoadingItems, setIsLoadingItems] = useState(false);
   const [stores, setStores] = useState<Store[]>([]);
@@ -103,6 +107,7 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
 
   const loadHouseholds = useCallback(async () => {
     dispatch({ type: 'SET_LOADING', payload: true });
+    setLoadError(null);
     try {
       const data = await householdsApi.fetchHouseholds();
       dispatch({ type: 'SET_HOUSEHOLDS', payload: data });
@@ -111,6 +116,7 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
       }
     } catch {
       dispatch({ type: 'SET_LOADING', payload: false });
+      setLoadError('Could not connect to the server. Check your connection and try again.');
     }
   }, [state.activeHousehold]);
 
@@ -301,6 +307,7 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
     <HouseholdContext.Provider
       value={{
         ...state,
+        loadError,
         loadHouseholds,
         createHousehold,
         joinHousehold,

@@ -20,6 +20,8 @@ export default function HouseholdListScreen({ navigation }: any) {
   const {
     households,
     isLoading,
+    loadError,
+    loadHouseholds,
     createHousehold,
     joinHousehold,
     setActiveHousehold,
@@ -94,6 +96,15 @@ export default function HouseholdListScreen({ navigation }: any) {
       {isLoading ? (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color="#007AFF" />
+        </View>
+      ) : loadError ? (
+        <View style={styles.centered}>
+          <Text style={styles.errorEmoji}>⚠️</Text>
+          <Text style={styles.connectionErrorTitle}>Connection Problem</Text>
+          <Text style={styles.connectionErrorSubtitle}>{loadError}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={loadHouseholds} activeOpacity={0.8}>
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <FlatList
@@ -406,5 +417,36 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#FF3B30',
     fontSize: 14,
+  },
+  errorEmoji: {
+    fontSize: 48,
+    marginBottom: 16,
+  },
+  connectionErrorTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1C1C1E',
+    marginBottom: 8,
+  },
+  connectionErrorSubtitle: {
+    fontSize: 15,
+    color: '#8E8E93',
+    textAlign: 'center',
+    lineHeight: 22,
+    paddingHorizontal: 32,
+    marginBottom: 24,
+  },
+  retryButton: {
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    paddingHorizontal: 32,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
