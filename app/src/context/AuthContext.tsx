@@ -157,6 +157,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       SecureStore.deleteItemAsync(SECURE_STORE_JWT_KEY),
       SecureStore.deleteItemAsync(SECURE_STORE_USER_KEY),
     ]);
+
+    const logoutUrl =
+      `https://${AUTH0_DOMAIN}/v2/logout` +
+      `?client_id=${encodeURIComponent(AUTH0_CLIENT_ID)}` +
+      `&returnTo=${encodeURIComponent(REDIRECT_URI)}`;
+    await WebBrowser.openAuthSessionAsync(logoutUrl, REDIRECT_URI).catch(() => {});
+
     dispatch({ type: 'SIGN_OUT' });
   }, []);
 

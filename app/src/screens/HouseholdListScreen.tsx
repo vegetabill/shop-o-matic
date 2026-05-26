@@ -62,7 +62,9 @@ export default function HouseholdListScreen({ navigation }: any) {
   };
 
   const handleJoin = async () => {
-    const code = joinCode.trim().toUpperCase();
+    const raw = joinCode.trim();
+    // Accept a pasted invite URL (e.g. https://shop-o-matic.app/join/ABC123) or bare code
+    const code = (raw.includes('/') ? raw.split('/').pop()! : raw).toUpperCase();
     if (!code) return;
     setIsSubmitting(true);
     setError(null);
