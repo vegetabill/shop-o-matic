@@ -8,7 +8,7 @@ Rails.application.configure do
   # Use a real queuing backend for Active Job
   # config.active_job.queue_adapter = :resque
 
-  config.log_level = :info
+  config.log_level = :debug
   config.log_tags = [:request_id]
 
   config.action_mailer.perform_caching = false

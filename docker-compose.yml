@@ -2,32 +2,25 @@ services:
   db:
     image: postgres:14-alpine
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-shopomatic}
-      POSTGRES_DB: ${POSTGRES_DB:-shop_o_matic_production}
-      POSTGRES_HOST_AUTH_METHOD: trust
-    command: postgres -c unix_socket_permissions=0777
+      POSTGRES_USER: shop
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - shopomatic_postgres_data:/var/lib/postgresql/data
       - postgres_socket:/var/run/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 5s
+      test: ["CMD-SHELL", "pg_isready -U shop"]
+      interval: 2s
+      timeout: 10s
       retries: 10
 
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        # API base URL baked into the Expo web build; default is same-origin /api/v1
-        EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-/api/v1}
+    image: ghcr.io/vegetabill/shop-o-matic:latest
     ports:
-      - "${PORT:-8080}:8080"
+      - "8080:8080"
     environment:
       DB_HOST: /var/run/postgresql
-      DB_USERNAME: ${POSTGRES_USER:-shopomatic}
-      DB_NAME: ${POSTGRES_DB:-shop_o_matic_production}
+      DB_USERNAME: shop
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
       SECRET_KEY_BASE: ${SECRET_KEY_BASE:?SECRET_KEY_BASE is required}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
       AUTH0_DOMAIN: ${AUTH0_DOMAIN:?AUTH0_DOMAIN is required}
@@ -40,8 +33,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    restart: unless-stopped
+    restart: no
 
 volumes:
-  postgres_data:
+  shopomatic_postgres_data:
+    external: true
   postgres_socket:

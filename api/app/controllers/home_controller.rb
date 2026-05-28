@@ -3,6 +3,12 @@ require "rqrcode"
 class HomeController < ActionController::Base
   protect_from_forgery with: :null_session
 
+  VERSION_HASH = begin
+    ENV.fetch("GIT_COMMIT") do
+      `git rev-parse --short HEAD 2>/dev/null`.strip.presence || "unknown"
+    end
+  end.freeze
+
   def index
     expo_url = ENV.fetch("EXPO_APP_URL") do
       host = request.host
@@ -19,12 +25,12 @@ class HomeController < ActionController::Base
       use_path: true
     )
 
-    render html: landing_html(expo_url, qr_svg).html_safe, layout: false
+    render html: landing_html(expo_url, qr_svg, VERSION_HASH).html_safe, layout: false
   end
 
   private
 
-  def landing_html(expo_url, qr_svg)
+  def landing_html(expo_url, qr_svg, version)
     <<~HTML
       <!DOCTYPE html>
       <html lang="en">
@@ -90,6 +96,14 @@ class HomeController < ActionController::Base
             font-size: 13px;
             color: #C7C7CC;
           }
+
+          .version {
+            margin-top: 20px;
+            font-size: 11px;
+            color: #C7C7CC;
+            font-family: ui-monospace, "SF Mono", Menlo, monospace;
+            letter-spacing: 0.3px;
+          }
         </style>
       </head>
       <body>
@@ -99,6 +113,7 @@ class HomeController < ActionController::Base
           <div class="qr">#{qr_svg}</div>
           <p class="expo-url">#{ERB::Util.html_escape(expo_url)}</p>
           <p class="hint">Open Expo Go &rarr; scan this code</p>
+          <p class="version">#{ERB::Util.html_escape(version)}</p>
         </div>
       </body>
       </html>

@@ -32,11 +32,10 @@ docker login ghcr.io   # or docker login, etc.
 Tag and push:
 
 ```sh
-IMAGE=ghcr.io/<your-org>/shop-o-matic-api
+IMAGE=ghcr.io/vegetabill/shop-o-matic-api
 
-docker build -t $IMAGE:latest -t $IMAGE:1.2.3 ./api
+docker build -t $IMAGE:latest --build-arg GIT_COMMIT=$(git rev-parse --short HEAD) ./api
 docker push $IMAGE:latest
-docker push $IMAGE:1.2.3
 ```
 
 ### Multi-platform build (linux/amd64 + linux/arm64)

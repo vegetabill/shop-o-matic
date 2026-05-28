@@ -31,7 +31,7 @@ test:
 
 production:
   <<: *default
-  database: <%= ENV["DB_NAME"] || "shop_o_matic_production" %>
+  database: <%= ENV["DB_NAME"] %>
   host: <%= ENV.fetch("DB_HOST") { "localhost" } %>
   port: <%= ENV.fetch("DB_PORT") { 5432 } %>
   username: <%= ENV["DB_USERNAME"] %>
