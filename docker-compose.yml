@@ -2,13 +2,13 @@ services:
   db:
     image: postgres:14-alpine
     environment:
-      POSTGRES_USER: shop
+      POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - shopomatic_postgres_data:/var/lib/postgresql/data
       - postgres_socket:/var/run/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U shop"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 2s
       timeout: 10s
       retries: 10
@@ -19,7 +19,7 @@ services:
       - "8080:8080"
     environment:
       DB_HOST: /var/run/postgresql
-      DB_USERNAME: shop
+      DB_USERNAME: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       SECRET_KEY_BASE: ${SECRET_KEY_BASE:?SECRET_KEY_BASE is required}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
@@ -28,6 +28,7 @@ services:
       FORCE_SSL: "false"
       RAILS_MAX_THREADS: ${RAILS_MAX_THREADS:-5}
       WEB_CONCURRENCY: ${WEB_CONCURRENCY:-2}
+      GIT_COMMIT: ${GIT_COMMIT:-unknown}
     volumes:
       - postgres_socket:/var/run/postgresql
     depends_on:
