@@ -13,7 +13,7 @@ end
 
 Thread.new do
   begin
-    connect_opts = { host: mqtt_host, port: mqtt_port, connect_timeout: 5, version: :mqtt311 }
+    connect_opts = { host: mqtt_host, port: mqtt_port, connect_timeout: 5 }
     connect_opts[:username] = mqtt_user if mqtt_user.present?
     connect_opts[:password] = mqtt_pass if mqtt_pass.present?
 
