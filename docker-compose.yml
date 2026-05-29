@@ -14,7 +14,12 @@ services:
       retries: 10
 
   api:
-    image: ghcr.io/vegetabill/shop-o-matic:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # API base URL baked into the Expo web build; default is same-origin /api/v1
+        EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-/api/v1}
     ports:
       - "8080:8080"
     environment:
