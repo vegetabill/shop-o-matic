@@ -24,7 +24,6 @@ export interface Category {
   id: string;
   household_id: string;
   name: string;
-  sort_order: number;
   created_at: string;
 }
 
@@ -116,12 +115,10 @@ export interface UpdateStorePayload {
 
 export interface CreateCategoryPayload {
   name: string;
-  sort_order?: number;
 }
 
 export interface UpdateCategoryPayload {
   name?: string;
-  sort_order?: number;
 }
 
 export interface EndShoppingPayload {

@@ -155,7 +155,6 @@ npm run lint
 - **No real-time sync** — Context refreshes via explicit API calls; no WebSocket
 - **Inline JSON serialization** — Controllers build response hashes directly (no serializer layer yet)
 - **Dev mock auth** — `POST /auth/mock` creates `demo@example.com` so you can test without Google OAuth
-- **`sort_order` on categories** — Column exists in schema but is unused; placeholder for future drag-to-reorder
 
 ## Tests
 

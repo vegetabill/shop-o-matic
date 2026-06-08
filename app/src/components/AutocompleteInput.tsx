@@ -57,7 +57,7 @@ export default function AutocompleteInput({
         } finally {
           setIsSearching(false);
         }
-      }, 300);
+      }, 1000);
     },
     [searchItems],
   );

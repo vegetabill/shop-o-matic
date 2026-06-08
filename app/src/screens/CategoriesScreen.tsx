@@ -20,7 +20,6 @@ interface CategoryModalState {
   visible: boolean;
   category: Category | null;
   name: string;
-  sortOrder: string;
   isSubmitting: boolean;
   error: string | null;
 }
@@ -39,33 +38,25 @@ export default function CategoriesScreen() {
     visible: false,
     category: null,
     name: '',
-    sortOrder: '0',
     isSubmitting: false,
     error: null,
   });
 
-  const sortedCategories = [...categories].sort((a, b) => a.sort_order - b.sort_order);
-
   const openCreate = useCallback(() => {
-    const nextOrder = categories.length > 0
-      ? Math.max(...categories.map((c) => c.sort_order)) + 1
-      : 0;
     setModal({
       visible: true,
       category: null,
       name: '',
-      sortOrder: String(nextOrder),
       isSubmitting: false,
       error: null,
     });
-  }, [categories]);
+  }, []);
 
   const openEdit = useCallback((category: Category) => {
     setModal({
       visible: true,
       category,
       name: category.name,
-      sortOrder: String(category.sort_order),
       isSubmitting: false,
       error: null,
     });
@@ -78,13 +69,12 @@ export default function CategoriesScreen() {
   const handleSave = useCallback(async () => {
     const name = modal.name.trim();
     if (!name) return;
-    const sortOrder = parseInt(modal.sortOrder, 10) || 0;
     setModal((prev) => ({ ...prev, isSubmitting: true, error: null }));
     try {
       if (modal.category) {
-        await updateCategory(modal.category.id, { name, sort_order: sortOrder });
+        await updateCategory(modal.category.id, { name });
       } else {
-        await addCategory({ name, sort_order: sortOrder });
+        await addCategory({ name });
       }
       closeModal();
     } catch (e: any) {
@@ -120,15 +110,12 @@ export default function CategoriesScreen() {
     [removeCategory],
   );
 
-  const renderCategory = ({ item, index }: { item: Category; index: number }) => (
+  const renderCategory = ({ item }: { item: Category }) => (
     <TouchableOpacity
       style={styles.categoryRow}
       onPress={() => openEdit(item)}
       activeOpacity={0.7}
     >
-      <View style={styles.orderBadge}>
-        <Text style={styles.orderText}>{item.sort_order}</Text>
-      </View>
       <Text style={styles.categoryName}>{item.name}</Text>
       <TouchableOpacity
         style={styles.deleteBtn}
@@ -155,7 +142,7 @@ export default function CategoriesScreen() {
         </View>
       ) : (
         <FlatList
-          data={sortedCategories}
+          data={categories}
           keyExtractor={(item) => item.id}
           renderItem={renderCategory}
           onRefresh={loadCategories}
@@ -206,17 +193,6 @@ export default function CategoriesScreen() {
               placeholderTextColor="#8E8E93"
               autoFocus={!modal.category}
             />
-
-            <Text style={styles.fieldLabel}>Sort Order</Text>
-            <TextInput
-              style={styles.textInput}
-              value={modal.sortOrder}
-              onChangeText={(v) => setModal((p) => ({ ...p, sortOrder: v }))}
-              placeholder="0"
-              placeholderTextColor="#8E8E93"
-              keyboardType="number-pad"
-            />
-            <Text style={styles.fieldHint}>Lower numbers appear first on the list.</Text>
 
             <TouchableOpacity
               style={[
@@ -297,20 +273,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#E5E5EA',
   },
-  orderBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#F2F2F7',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  orderText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#8E8E93',
-  },
   categoryName: {
     flex: 1,
     fontSize: 17,
@@ -367,11 +329,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#1C1C1E',
     backgroundColor: '#F9F9F9',
-  },
-  fieldHint: {
-    fontSize: 12,
-    color: '#8E8E93',
-    marginTop: -4,
   },
   saveButton: {
     backgroundColor: '#007AFF',
