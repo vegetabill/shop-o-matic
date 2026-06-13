@@ -1,5 +1,5 @@
 import apiClient from './client';
-import { Item, CreateItemPayload, UpdateItemPayload, EndShoppingPayload } from '../types';
+import { Item, CreateItemPayload, UpdateItemPayload, EndShoppingPayload, ActiveTrip, PauseShoppingPayload } from '../types';
 
 export async function fetchItems(householdId: string): Promise<Item[]> {
   return apiClient.get<Item[]>(`/households/${householdId}/items`);
@@ -22,6 +22,17 @@ export async function updateItem(
 
 export async function markItemUnavailable(householdId: string, itemId: string): Promise<Item> {
   return apiClient.post<Item>(`/households/${householdId}/items/${itemId}/mark_unavailable`);
+}
+
+export async function getActiveTrips(householdId: string): Promise<ActiveTrip[]> {
+  return apiClient.get<ActiveTrip[]>(`/households/${householdId}/shopping/active`);
+}
+
+export async function pauseTrip(
+  householdId: string,
+  payload: PauseShoppingPayload,
+): Promise<ActiveTrip> {
+  return apiClient.post<ActiveTrip>(`/households/${householdId}/shopping/pause`, payload);
 }
 
 export async function endShopping(

@@ -27,7 +27,9 @@ Rails.application.routes.draw do
         end
 
         # Shopping mode
-        post "shopping/end", to: "shopping#end"
+        get  "shopping/active", to: "shopping#active"
+        post "shopping/pause",  to: "shopping#pause"
+        post "shopping/end",    to: "shopping#end"
       end
     end
   end

@@ -86,3 +86,9 @@ This describes the item data:
 - For each item you can mark it as not available at the store you are in so it will disappear from the view
 - For each item you can check it off as purchased which will show as crossed out
 - The purchased items will stay as crossed out until you leave the view and shopping mode is over
+
+### Pausing and Resuming Shopping Mode
+
+If you leave the shopping screen it will pause the trip. All your selections will be saved but not finalized.
+
+When you click Start Shopping it will show any in-progress shopping trips and let you resume them.

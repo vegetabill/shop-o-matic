@@ -121,8 +121,26 @@ export interface UpdateCategoryPayload {
   name?: string;
 }
 
+export interface ActiveTrip {
+  id: string;
+  store_id: string | null;
+  store_name: string | null;
+  store_color: string | null;
+  purchased_item_ids: string[];
+  skipped_item_ids: string[];
+  created_at: string;
+}
+
+export interface PauseShoppingPayload {
+  store_id?: string;
+  trip_id?: string;
+  purchased_item_ids: string[];
+  skipped_item_ids: string[];
+}
+
 export interface EndShoppingPayload {
   purchased_item_ids: string[];
   skipped_item_ids?: string[];
   store_id?: string;
+  trip_id?: string;
 }

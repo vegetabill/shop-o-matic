@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -11,15 +11,56 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useHousehold } from '../context/HouseholdContext';
-import { Item, Store } from '../types';
+import { ActiveTrip, Item, Store } from '../types';
 
 export default function ShoppingScreen({ navigation }: any) {
-  const { items, stores, endShopping } = useHousehold();
+  const { items, stores, getActiveTrips, pauseTrip, endShopping } = useHousehold();
 
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [purchasedIds, setPurchasedIds] = useState<Set<string>>(new Set());
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+  const [currentTripId, setCurrentTripId] = useState<string | null>(null);
   const [isDone, setIsDone] = useState(false);
+  const [activeTrips, setActiveTrips] = useState<ActiveTrip[]>([]);
+
+  // Refs so the unmount cleanup always has the latest values
+  const selectedStoreRef = useRef<Store | null>(null);
+  const purchasedIdsRef = useRef<Set<string>>(new Set());
+  const hiddenIdsRef = useRef<Set<string>>(new Set());
+  const currentTripIdRef = useRef<string | null>(null);
+  const isDoneRef = useRef(false);
+
+  useEffect(() => { selectedStoreRef.current = selectedStore; }, [selectedStore]);
+  useEffect(() => { purchasedIdsRef.current = purchasedIds; }, [purchasedIds]);
+  useEffect(() => { hiddenIdsRef.current = hiddenIds; }, [hiddenIds]);
+  useEffect(() => { currentTripIdRef.current = currentTripId; }, [currentTripId]);
+
+  // Fetch in-progress trips on mount
+  useEffect(() => {
+    getActiveTrips()
+      .then(setActiveTrips)
+      .catch(() => {});
+  }, [getActiveTrips]);
+
+  // On unmount (navigate away), save trip state if in the middle of shopping
+  useEffect(() => {
+    return () => {
+      const store = selectedStoreRef.current;
+      const purchased = purchasedIdsRef.current;
+      const hidden = hiddenIdsRef.current;
+      const tripId = currentTripIdRef.current;
+      const hasSelections = purchased.size > 0 || hidden.size > 0;
+
+      if (!store || isDoneRef.current || (!hasSelections && !tripId)) return;
+
+      pauseTrip(
+        Array.from(purchased),
+        Array.from(hidden),
+        store.id,
+        tripId ?? undefined,
+      ).catch(() => {});
+    };
+  }, [pauseTrip]);
 
   const shoppingItems = useMemo(() => {
     if (!selectedStore) return [];
@@ -35,12 +76,26 @@ export default function ShoppingScreen({ navigation }: any) {
     setSelectedStore(store);
     setPurchasedIds(new Set());
     setHiddenIds(new Set());
+    setCurrentTripId(null);
   }, []);
+
+  const handleResumeTrip = useCallback(
+    (trip: ActiveTrip) => {
+      const store = stores.find((s) => s.id === trip.store_id);
+      if (!store) return;
+      setSelectedStore(store);
+      setPurchasedIds(new Set(trip.purchased_item_ids));
+      setHiddenIds(new Set(trip.skipped_item_ids));
+      setCurrentTripId(trip.id);
+    },
+    [stores],
+  );
 
   const handleChangeStore = useCallback(() => {
     setSelectedStore(null);
     setPurchasedIds(new Set());
     setHiddenIds(new Set());
+    setCurrentTripId(null);
   }, []);
 
   const handleTogglePurchased = useCallback((item: Item) => {
@@ -71,19 +126,28 @@ export default function ShoppingScreen({ navigation }: any) {
   }, []);
 
   const handleDoneShopping = useCallback(async () => {
+    isDoneRef.current = true;
     setIsDone(true);
     try {
-      await endShopping(Array.from(purchasedIds), Array.from(hiddenIds), selectedStore?.id);
+      await endShopping(
+        Array.from(purchasedIds),
+        Array.from(hiddenIds),
+        selectedStore?.id,
+        currentTripId ?? undefined,
+      );
       navigation.goBack();
     } catch (e: any) {
+      isDoneRef.current = false;
       Alert.alert('Error', e.message ?? 'Failed to end shopping session.');
       setIsDone(false);
     }
-  }, [endShopping, purchasedIds, hiddenIds, selectedStore, navigation]);
+  }, [endShopping, purchasedIds, hiddenIds, selectedStore, currentTripId, navigation]);
 
   // ── Store picker ──────────────────────────────────────────────────────────
 
   if (!selectedStore) {
+    const resumableTrips = activeTrips.filter((t) => stores.some((s) => s.id === t.store_id));
+
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.pickerHeader}>
@@ -102,6 +166,37 @@ export default function ShoppingScreen({ navigation }: any) {
             data={stores}
             keyExtractor={(s) => s.id}
             contentContainerStyle={styles.pickerList}
+            ListHeaderComponent={
+              resumableTrips.length > 0 ? (
+                <View style={styles.resumeSection}>
+                  <Text style={styles.resumeSectionTitle}>In Progress</Text>
+                  {resumableTrips.map((trip) => {
+                    const store = stores.find((s) => s.id === trip.store_id);
+                    const checkedCount = trip.purchased_item_ids.length;
+                    return (
+                      <TouchableOpacity
+                        key={trip.id}
+                        style={styles.resumeCard}
+                        onPress={() => handleResumeTrip(trip)}
+                        activeOpacity={0.7}
+                      >
+                        <View style={[styles.storeCardColor, { backgroundColor: store?.color ?? '#888' }]} />
+                        <View style={styles.resumeCardContent}>
+                          <Text style={styles.storeCardName}>{store?.name ?? 'Unknown Store'}</Text>
+                          {checkedCount > 0 && (
+                            <Text style={styles.resumeCardSub}>
+                              {checkedCount} item{checkedCount !== 1 ? 's' : ''} checked off
+                            </Text>
+                          )}
+                        </View>
+                        <Text style={styles.resumeLabel}>Resume</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                  <Text style={styles.orDivider}>— or start new —</Text>
+                </View>
+              ) : null
+            }
             renderItem={({ item: store }) => (
               <TouchableOpacity
                 style={styles.storeCard}
@@ -226,7 +321,54 @@ const styles = StyleSheet.create({
   pickerList: {
     paddingHorizontal: 16,
     gap: 10,
+    paddingBottom: 24,
   },
+
+  // Resume section
+  resumeSection: {
+    marginBottom: 4,
+  },
+  resumeSectionTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#8E8E93',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  resumeCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EDF6FF',
+    borderRadius: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    gap: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#B3D9FF',
+  },
+  resumeCardContent: {
+    flex: 1,
+  },
+  resumeCardSub: {
+    fontSize: 13,
+    color: '#007AFF',
+    marginTop: 2,
+  },
+  resumeLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#007AFF',
+  },
+  orDivider: {
+    textAlign: 'center',
+    fontSize: 13,
+    color: '#C7C7CC',
+    marginVertical: 4,
+    marginBottom: 10,
+  },
+
   storeCard: {
     flexDirection: 'row',
     alignItems: 'center',

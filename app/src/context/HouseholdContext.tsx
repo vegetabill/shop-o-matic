@@ -14,6 +14,7 @@ import {
   Item,
   Store,
   Category,
+  ActiveTrip,
   CreateItemPayload,
   UpdateItemPayload,
   CreateStorePayload,
@@ -43,7 +44,9 @@ interface HouseholdContextValue extends HouseholdState {
   addItem: (payload: CreateItemPayload) => Promise<Item>;
   updateItem: (itemId: string, payload: UpdateItemPayload) => Promise<Item>;
   removeItem: (itemId: string) => Promise<void>;
-  endShopping: (purchasedItemIds: string[], skippedItemIds?: string[], storeId?: string) => Promise<void>;
+  getActiveTrips: () => Promise<ActiveTrip[]>;
+  pauseTrip: (purchasedItemIds: string[], skippedItemIds: string[], storeId?: string, tripId?: string) => Promise<void>;
+  endShopping: (purchasedItemIds: string[], skippedItemIds?: string[], storeId?: string, tripId?: string) => Promise<void>;
   searchItems: (query: string) => Promise<Item[]>;
 
   // stores
@@ -180,13 +183,32 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
     [householdId],
   );
 
+  const getActiveTrips = useCallback(async (): Promise<ActiveTrip[]> => {
+    if (!householdId) return [];
+    return itemsApi.getActiveTrips(householdId);
+  }, [householdId]);
+
+  const pauseTrip = useCallback(
+    async (purchasedItemIds: string[], skippedItemIds: string[], storeId?: string, tripId?: string) => {
+      if (!householdId) return;
+      await itemsApi.pauseTrip(householdId, {
+        purchased_item_ids: purchasedItemIds,
+        skipped_item_ids: skippedItemIds,
+        store_id: storeId,
+        trip_id: tripId,
+      });
+    },
+    [householdId],
+  );
+
   const endShopping = useCallback(
-    async (purchasedItemIds: string[], skippedItemIds?: string[], storeId?: string) => {
+    async (purchasedItemIds: string[], skippedItemIds?: string[], storeId?: string, tripId?: string) => {
       if (!householdId) throw new Error('No active household');
       await itemsApi.endShopping(householdId, {
         purchased_item_ids: purchasedItemIds,
         skipped_item_ids: skippedItemIds,
         store_id: storeId,
+        trip_id: tripId,
       });
       await loadItems();
     },
@@ -321,6 +343,8 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
         addItem,
         updateItem,
         removeItem,
+        getActiveTrips,
+        pauseTrip,
         endShopping,
         searchItems,
         stores,
