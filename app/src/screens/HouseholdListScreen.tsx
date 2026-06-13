@@ -121,7 +121,7 @@ export default function HouseholdListScreen({ navigation }: any) {
       ) : (
         <FlatList
           data={households}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => String(item.id)}
           renderItem={renderHousehold}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>

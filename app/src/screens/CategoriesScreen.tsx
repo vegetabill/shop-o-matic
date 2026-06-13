@@ -143,7 +143,7 @@ export default function CategoriesScreen() {
       ) : (
         <FlatList
           data={categories}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => String(item.id)}
           renderItem={renderCategory}
           onRefresh={loadCategories}
           refreshing={isLoadingCategories}

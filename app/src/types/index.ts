@@ -1,34 +1,34 @@
 export interface User {
-  id: string;
+  id: number;
   email: string;
   name: string;
   avatar_url?: string;
 }
 
 export interface Household {
-  id: string;
+  id: number;
   name: string;
   share_token: string;
   created_at: string;
 }
 
 export interface Store {
-  id: string;
-  household_id: string;
+  id: number;
+  household_id: number;
   name: string;
   color: string;
   created_at: string;
 }
 
 export interface Category {
-  id: string;
-  household_id: string;
+  id: number;
+  household_id: number;
   name: string;
   created_at: string;
 }
 
 export interface ItemStore {
-  store_id: string;
+  store_id: number;
   store_name: string;
   store_color: string;
 }
@@ -36,12 +36,12 @@ export interface ItemStore {
 export type ItemPriority = 'none' | 'low' | 'high';
 
 export interface Item {
-  id: string;
-  household_id: string;
+  id: number;
+  household_id: number;
   name: string;
   notes?: string;
   priority: ItemPriority;
-  category_id?: string;
+  category_id?: number;
   category_name?: string;
   on_list: boolean;
   purchased: boolean;
@@ -89,16 +89,16 @@ export interface CreateItemPayload {
   name: string;
   notes?: string;
   priority?: ItemPriority;
-  category_id?: string;
-  store_ids?: string[];
+  category_id?: number;
+  store_ids?: number[];
 }
 
 export interface UpdateItemPayload {
   name?: string;
   notes?: string;
   priority?: ItemPriority;
-  category_id?: string | null;
-  store_ids?: string[];
+  category_id?: number | null;
+  store_ids?: number[];
   on_list?: boolean;
   purchased?: boolean;
 }
@@ -122,25 +122,26 @@ export interface UpdateCategoryPayload {
 }
 
 export interface ActiveTrip {
-  id: string;
-  store_id: string | null;
+  id: number;
+  store_id: number | null;
   store_name: string | null;
   store_color: string | null;
-  purchased_item_ids: string[];
-  skipped_item_ids: string[];
+  purchased_item_ids: number[];
+  skipped_item_ids: number[];
   created_at: string;
+  updated_at: string;
 }
 
 export interface PauseShoppingPayload {
-  store_id?: string;
-  trip_id?: string;
-  purchased_item_ids: string[];
-  skipped_item_ids: string[];
+  store_id?: number;
+  trip_id?: number;
+  purchased_item_ids: number[];
+  skipped_item_ids: number[];
 }
 
 export interface EndShoppingPayload {
-  purchased_item_ids: string[];
-  skipped_item_ids?: string[];
-  store_id?: string;
-  trip_id?: string;
+  purchased_item_ids: number[];
+  skipped_item_ids?: number[];
+  store_id?: number;
+  trip_id?: number;
 }

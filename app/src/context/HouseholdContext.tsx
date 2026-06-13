@@ -42,11 +42,11 @@ interface HouseholdContextValue extends HouseholdState {
   isLoadingItems: boolean;
   loadItems: () => Promise<void>;
   addItem: (payload: CreateItemPayload) => Promise<Item>;
-  updateItem: (itemId: string, payload: UpdateItemPayload) => Promise<Item>;
-  removeItem: (itemId: string) => Promise<void>;
+  updateItem: (itemId: number, payload: UpdateItemPayload) => Promise<Item>;
+  removeItem: (itemId: number) => Promise<void>;
   getActiveTrips: () => Promise<ActiveTrip[]>;
-  pauseTrip: (purchasedItemIds: string[], skippedItemIds: string[], storeId?: string, tripId?: string) => Promise<void>;
-  endShopping: (purchasedItemIds: string[], skippedItemIds?: string[], storeId?: string, tripId?: string) => Promise<void>;
+  pauseTrip: (purchasedItemIds: number[], skippedItemIds: number[], storeId?: number, tripId?: number) => Promise<ActiveTrip | null>;
+  endShopping: (purchasedItemIds: number[], skippedItemIds?: number[], storeId?: number, tripId?: number) => Promise<void>;
   searchItems: (query: string) => Promise<Item[]>;
 
   // stores
@@ -54,16 +54,16 @@ interface HouseholdContextValue extends HouseholdState {
   isLoadingStores: boolean;
   loadStores: () => Promise<void>;
   addStore: (payload: CreateStorePayload) => Promise<Store>;
-  updateStore: (storeId: string, payload: UpdateStorePayload) => Promise<Store>;
-  removeStore: (storeId: string) => Promise<void>;
+  updateStore: (storeId: number, payload: UpdateStorePayload) => Promise<Store>;
+  removeStore: (storeId: number) => Promise<void>;
 
   // categories
   categories: Category[];
   isLoadingCategories: boolean;
   loadCategories: () => Promise<void>;
   addCategory: (payload: CreateCategoryPayload) => Promise<Category>;
-  updateCategory: (categoryId: string, payload: UpdateCategoryPayload) => Promise<Category>;
-  removeCategory: (categoryId: string) => Promise<void>;
+  updateCategory: (categoryId: number, payload: UpdateCategoryPayload) => Promise<Category>;
+  removeCategory: (categoryId: number) => Promise<void>;
 }
 
 const initialHouseholdState: HouseholdState = {
@@ -165,7 +165,7 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
   );
 
   const updateItem = useCallback(
-    async (itemId: string, payload: UpdateItemPayload): Promise<Item> => {
+    async (itemId: number, payload: UpdateItemPayload): Promise<Item> => {
       if (!householdId) throw new Error('No active household');
       const updated = await itemsApi.updateItem(householdId, itemId, payload);
       setItems((prev) => prev.map((i) => (i.id === itemId ? updated : i)));
@@ -175,7 +175,7 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
   );
 
   const removeItem = useCallback(
-    async (itemId: string) => {
+    async (itemId: number) => {
       if (!householdId) throw new Error('No active household');
       const updated = await itemsApi.markItemUnavailable(householdId, itemId);
       setItems((prev) => prev.map((i) => (i.id === itemId ? updated : i)));
@@ -189,9 +189,9 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
   }, [householdId]);
 
   const pauseTrip = useCallback(
-    async (purchasedItemIds: string[], skippedItemIds: string[], storeId?: string, tripId?: string) => {
-      if (!householdId) return;
-      await itemsApi.pauseTrip(householdId, {
+    async (purchasedItemIds: number[], skippedItemIds: number[], storeId?: number, tripId?: number): Promise<ActiveTrip | null> => {
+      if (!householdId) return null;
+      return itemsApi.pauseTrip(householdId, {
         purchased_item_ids: purchasedItemIds,
         skipped_item_ids: skippedItemIds,
         store_id: storeId,
@@ -202,7 +202,7 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
   );
 
   const endShopping = useCallback(
-    async (purchasedItemIds: string[], skippedItemIds?: string[], storeId?: string, tripId?: string) => {
+    async (purchasedItemIds: number[], skippedItemIds?: number[], storeId?: number, tripId?: number) => {
       if (!householdId) throw new Error('No active household');
       await itemsApi.endShopping(householdId, {
         purchased_item_ids: purchasedItemIds,
@@ -246,7 +246,7 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
   );
 
   const updateStore = useCallback(
-    async (storeId: string, payload: UpdateStorePayload): Promise<Store> => {
+    async (storeId: number, payload: UpdateStorePayload): Promise<Store> => {
       if (!householdId) throw new Error('No active household');
       const updated = await storesApi.updateStore(householdId, storeId, payload);
       setStores((prev) => prev.map((s) => (s.id === storeId ? updated : s)));
@@ -256,7 +256,7 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
   );
 
   const removeStore = useCallback(
-    async (storeId: string) => {
+    async (storeId: number) => {
       if (!householdId) throw new Error('No active household');
       await storesApi.deleteStore(householdId, storeId);
       setStores((prev) => prev.filter((s) => s.id !== storeId));
@@ -287,7 +287,7 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
   );
 
   const updateCategory = useCallback(
-    async (categoryId: string, payload: UpdateCategoryPayload): Promise<Category> => {
+    async (categoryId: number, payload: UpdateCategoryPayload): Promise<Category> => {
       if (!householdId) throw new Error('No active household');
       const updated = await categoriesApi.updateCategory(householdId, categoryId, payload);
       setCategories((prev) => prev.map((c) => (c.id === categoryId ? updated : c)));
@@ -297,7 +297,7 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
   );
 
   const removeCategory = useCallback(
-    async (categoryId: string) => {
+    async (categoryId: number) => {
       if (!householdId) throw new Error('No active household');
       await categoriesApi.deleteCategory(householdId, categoryId);
       setCategories((prev) => prev.filter((c) => c.id !== categoryId));

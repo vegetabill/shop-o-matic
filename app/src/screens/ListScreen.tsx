@@ -44,8 +44,8 @@ interface EditModalState {
   name: string;
   notes: string;
   priority: ItemPriority;
-  categoryId: string | null;
-  selectedStoreIds: Set<string>;
+  categoryId: number | null;
+  selectedStoreIds: Set<number>;
   isSubmitting: boolean;
   error: string | null;
 }
@@ -173,7 +173,7 @@ export default function ListScreen({ navigation }: any) {
     ]);
   }, [editModal, removeItem, closeEditModal]);
 
-  const toggleStoreSelection = useCallback((storeId: string) => {
+  const toggleStoreSelection = useCallback((storeId: number) => {
     setEditModal((prev) => {
       const next = new Set(prev.selectedStoreIds);
       if (next.has(storeId)) {
@@ -306,7 +306,7 @@ export default function ListScreen({ navigation }: any) {
         ) : (
           <SectionList
             sections={sections}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => String(item.id)}
             renderSectionHeader={renderSectionHeader}
             renderItem={renderItem}
             onRefresh={loadItems}

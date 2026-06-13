@@ -13,27 +13,28 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useHousehold } from '../context/HouseholdContext';
 import { ActiveTrip, Item, Store } from '../types';
 
+function timeAgo(isoString: string): string {
+  const seconds = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
+  if (seconds < 60) return 'just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
 export default function ShoppingScreen({ navigation }: any) {
   const { items, stores, getActiveTrips, pauseTrip, endShopping } = useHousehold();
 
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
-  const [purchasedIds, setPurchasedIds] = useState<Set<string>>(new Set());
-  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
-  const [currentTripId, setCurrentTripId] = useState<string | null>(null);
+  const [purchasedIds, setPurchasedIds] = useState<Set<number>>(new Set());
+  const [hiddenIds, setHiddenIds] = useState<Set<number>>(new Set());
+  const [currentTripId, setCurrentTripId] = useState<number | null>(null);
   const [isDone, setIsDone] = useState(false);
   const [activeTrips, setActiveTrips] = useState<ActiveTrip[]>([]);
 
-  // Refs so the unmount cleanup always has the latest values
-  const selectedStoreRef = useRef<Store | null>(null);
-  const purchasedIdsRef = useRef<Set<string>>(new Set());
-  const hiddenIdsRef = useRef<Set<string>>(new Set());
-  const currentTripIdRef = useRef<string | null>(null);
-  const isDoneRef = useRef(false);
-
-  useEffect(() => { selectedStoreRef.current = selectedStore; }, [selectedStore]);
-  useEffect(() => { purchasedIdsRef.current = purchasedIds; }, [purchasedIds]);
-  useEffect(() => { hiddenIdsRef.current = hiddenIds; }, [hiddenIds]);
-  useEffect(() => { currentTripIdRef.current = currentTripId; }, [currentTripId]);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Fetch in-progress trips on mount
   useEffect(() => {
@@ -42,25 +43,28 @@ export default function ShoppingScreen({ navigation }: any) {
       .catch(() => {});
   }, [getActiveTrips]);
 
-  // On unmount (navigate away), save trip state if in the middle of shopping
+  // Debounced save: fires 800ms after the last change to purchased/hidden items.
+  // This keeps the trip record current without relying on blur or unmount timing.
   useEffect(() => {
-    return () => {
-      const store = selectedStoreRef.current;
-      const purchased = purchasedIdsRef.current;
-      const hidden = hiddenIdsRef.current;
-      const tripId = currentTripIdRef.current;
-      const hasSelections = purchased.size > 0 || hidden.size > 0;
+    if (!selectedStore || isDone) return;
+    if (purchasedIds.size === 0 && hiddenIds.size === 0 && !currentTripId) return;
 
-      if (!store || isDoneRef.current || (!hasSelections && !tripId)) return;
-
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
       pauseTrip(
-        Array.from(purchased),
-        Array.from(hidden),
-        store.id,
-        tripId ?? undefined,
-      ).catch(() => {});
+        Array.from(purchasedIds),
+        Array.from(hiddenIds),
+        selectedStore.id,
+        currentTripId ?? undefined,
+      ).then((trip) => {
+        if (trip && !currentTripId) setCurrentTripId(trip.id);
+      }).catch(() => {});
+    }, 800);
+
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     };
-  }, [pauseTrip]);
+  }, [purchasedIds, hiddenIds, selectedStore, isDone]);
 
   const shoppingItems = useMemo(() => {
     if (!selectedStore) return [];
@@ -126,8 +130,9 @@ export default function ShoppingScreen({ navigation }: any) {
   }, []);
 
   const handleDoneShopping = useCallback(async () => {
-    isDoneRef.current = true;
     setIsDone(true);
+    // Flush any pending debounced save before ending
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     try {
       await endShopping(
         Array.from(purchasedIds),
@@ -137,7 +142,6 @@ export default function ShoppingScreen({ navigation }: any) {
       );
       navigation.goBack();
     } catch (e: any) {
-      isDoneRef.current = false;
       Alert.alert('Error', e.message ?? 'Failed to end shopping session.');
       setIsDone(false);
     }
@@ -164,7 +168,7 @@ export default function ShoppingScreen({ navigation }: any) {
         ) : (
           <FlatList
             data={stores}
-            keyExtractor={(s) => s.id}
+            keyExtractor={(s) => String(s.id)}
             contentContainerStyle={styles.pickerList}
             ListHeaderComponent={
               resumableTrips.length > 0 ? (
@@ -183,11 +187,12 @@ export default function ShoppingScreen({ navigation }: any) {
                         <View style={[styles.storeCardColor, { backgroundColor: store?.color ?? '#888' }]} />
                         <View style={styles.resumeCardContent}>
                           <Text style={styles.storeCardName}>{store?.name ?? 'Unknown Store'}</Text>
-                          {checkedCount > 0 && (
-                            <Text style={styles.resumeCardSub}>
-                              {checkedCount} item{checkedCount !== 1 ? 's' : ''} checked off
-                            </Text>
-                          )}
+                          <Text style={styles.resumeCardSub}>
+                            {checkedCount > 0
+                              ? `${checkedCount} item${checkedCount !== 1 ? 's' : ''} checked off · `
+                              : ''}
+                            {timeAgo(trip.updated_at)}
+                          </Text>
                         </View>
                         <Text style={styles.resumeLabel}>Resume</Text>
                       </TouchableOpacity>
@@ -265,7 +270,7 @@ export default function ShoppingScreen({ navigation }: any) {
       ) : (
         <FlatList
           data={shoppingItems}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => String(item.id)}
           renderItem={renderItem}
           style={styles.list}
           contentContainerStyle={styles.listContent}

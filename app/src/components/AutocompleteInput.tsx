@@ -122,7 +122,7 @@ export default function AutocompleteInput({
         <View style={styles.suggestionsContainer}>
           <FlatList
             data={suggestions}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => String(item.id)}
             keyboardShouldPersistTaps="handled"
             renderItem={({ item }) => (
               <TouchableOpacity

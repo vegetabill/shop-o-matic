@@ -13,6 +13,6 @@ export async function joinHousehold(joinCode: string): Promise<Household> {
   return apiClient.post<Household>('/households/join', { join_code: joinCode });
 }
 
-export async function fetchHousehold(id: string): Promise<Household> {
+export async function fetchHousehold(id: number): Promise<Household> {
   return apiClient.get<Household>(`/households/${id}`);
 }

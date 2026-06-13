@@ -142,7 +142,7 @@ export default function StoresScreen() {
       ) : (
         <FlatList
           data={stores}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => String(item.id)}
           renderItem={renderStore}
           onRefresh={loadStores}
           refreshing={isLoadingStores}

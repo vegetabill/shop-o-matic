@@ -31,6 +31,8 @@ module Api
 
           valid_purchased.each { |item_id| ShoppingTripItem.create!(shopping_trip: trip, item_id: item_id, status: "purchased") }
           valid_skipped.each   { |item_id| ShoppingTripItem.create!(shopping_trip: trip, item_id: item_id, status: "skipped") }
+
+          trip.touch
         end
 
         render json: serialize_trip(trip.reload), status: :ok
@@ -84,13 +86,14 @@ module Api
       def serialize_trip(trip)
         items = trip.shopping_trip_items.to_a
         {
-          id: trip.id.to_s,
-          store_id: trip.store_id&.to_s,
+          id: trip.id,
+          store_id: trip.store_id,
           store_name: trip.store&.name,
           store_color: trip.store&.color,
-          purchased_item_ids: items.select { |i| i.status == "purchased" }.map { |i| i.item_id.to_s },
-          skipped_item_ids: items.select { |i| i.status == "skipped" }.map { |i| i.item_id.to_s },
+          purchased_item_ids: items.select { |i| i.status == "purchased" }.map(&:item_id),
+          skipped_item_ids: items.select { |i| i.status == "skipped" }.map(&:item_id),
           created_at: trip.created_at.iso8601,
+          updated_at: trip.updated_at.iso8601,
         }
       end
     end

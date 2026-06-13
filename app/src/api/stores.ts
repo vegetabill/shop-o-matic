@@ -1,25 +1,25 @@
 import apiClient from './client';
 import { Store, CreateStorePayload, UpdateStorePayload } from '../types';
 
-export async function fetchStores(householdId: string): Promise<Store[]> {
+export async function fetchStores(householdId: number): Promise<Store[]> {
   return apiClient.get<Store[]>(`/households/${householdId}/stores`);
 }
 
 export async function createStore(
-  householdId: string,
+  householdId: number,
   payload: CreateStorePayload,
 ): Promise<Store> {
   return apiClient.post<Store>(`/households/${householdId}/stores`, payload);
 }
 
 export async function updateStore(
-  householdId: string,
-  storeId: string,
+  householdId: number,
+  storeId: number,
   payload: UpdateStorePayload,
 ): Promise<Store> {
   return apiClient.put<Store>(`/households/${householdId}/stores/${storeId}`, payload);
 }
 
-export async function deleteStore(householdId: string, storeId: string): Promise<void> {
+export async function deleteStore(householdId: number, storeId: number): Promise<void> {
   return apiClient.delete<void>(`/households/${householdId}/stores/${storeId}`);
 }
