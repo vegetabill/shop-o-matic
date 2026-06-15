@@ -20,7 +20,8 @@
       "bundleIdentifier": "com.shopomatic.app",
       "infoPlist": {
         "NSCameraUsageDescription": "Camera is not used by this app.",
-        "NSPhotoLibraryUsageDescription": "Photo library is not used by this app."
+        "NSPhotoLibraryUsageDescription": "Photo library is not used by this app.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
