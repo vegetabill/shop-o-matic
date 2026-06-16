@@ -26,7 +26,7 @@ import {
 
 WebBrowser.maybeCompleteAuthSession();
 
-const REDIRECT_URI = makeRedirectUri({ scheme: 'com.shopomatic.app' });
+const REDIRECT_URI = makeRedirectUri({ scheme: 'com.shopomatic.app', path: 'auth' });
 
 interface AuthContextValue extends AuthState {
   signIn: () => Promise<void>;
