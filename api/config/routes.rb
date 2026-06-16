@@ -39,4 +39,6 @@ Rails.application.routes.draw do
 
   # Landing page
   root "home#index"
+
+  get '/privacy', to: redirect("/privacy-policy.html")
 end

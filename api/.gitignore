@@ -16,9 +16,6 @@
 /storage/*
 !/storage/.keep
 
-# Generated Expo web build (produced by `make build-web` or Docker multi-stage build)
-/public/
-
 # Ignore master key for decrypting credentials and more.
 /config/master.key
 /config/credentials/*.key
