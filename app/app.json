@@ -2,7 +2,7 @@
   "expo": {
     "name": "Shop-o-matic",
     "slug": "shop-o-matic",
-    "scheme": "shopomaticapp",
+    "scheme": "com.29poms.shop",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -29,7 +29,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#F2F2F7"
       },
-      "package": "com.29poms.shop"
+      "package": "com.twentyninepoms.shop"
     },
     "web": {
       "favicon": "./assets/favicon.png"
