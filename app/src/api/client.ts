@@ -8,11 +8,17 @@ import * as SecureStore from 'expo-secure-store';
 import { API_BASE_URL, SECURE_STORE_JWT_KEY } from '../constants/config';
 
 type OnUnauthorizedCallback = () => void;
+type OnApiErrorCallback = (method: string, url: string, status: number | null, body: unknown) => void;
 
 let onUnauthorizedCallback: OnUnauthorizedCallback | null = null;
+let onApiErrorCallback: OnApiErrorCallback | null = null;
 
 export function setOnUnauthorizedCallback(cb: OnUnauthorizedCallback): void {
   onUnauthorizedCallback = cb;
+}
+
+export function setOnApiErrorCallback(cb: OnApiErrorCallback): void {
+  onApiErrorCallback = cb;
 }
 
 const axiosInstance: AxiosInstance = axios.create({
@@ -38,7 +44,15 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error) => {
-    if (error.response?.status === 401) {
+    const config = error.config;
+    const status = error.response?.status ?? null;
+    const method = config?.method?.toUpperCase() ?? 'UNKNOWN';
+    const url = config ? `${config.baseURL ?? ''}${config.url ?? ''}` : 'unknown URL';
+    const body = error.response?.data ?? error.message;
+    console.error(`[API] ${method} ${url} → ${status ?? 'no response'}`, body);
+    onApiErrorCallback?.(method, url, status, body);
+
+    if (status === 401) {
       await SecureStore.deleteItemAsync(SECURE_STORE_JWT_KEY);
       if (onUnauthorizedCallback) {
         onUnauthorizedCallback();
