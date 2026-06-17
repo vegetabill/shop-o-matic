@@ -1,0 +1,106 @@
+<% content_for :page_title, @household.name %>
+<% content_for :header_actions do %>
+  <%= link_to "Edit", edit_admin_household_path(@household), class: "btn btn-outline-secondary btn-sm me-2" %>
+  <%= button_to "Delete", admin_household_path(@household), method: :delete,
+        class: "btn btn-outline-danger btn-sm",
+        form: { onsubmit: "return confirm('Delete #{@household.name}? All data will be lost.')" } %>
+<% end %>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-4">
+    <div class="card shadow-none">
+      <div class="card-body">
+        <h6 class="text-uppercase text-muted small fw-semibold mb-3">Details</h6>
+        <dl class="row mb-0">
+          <dt class="col-sm-5 text-muted small">ID</dt>
+          <dd class="col-sm-7 small"><%= @household.id %></dd>
+
+          <dt class="col-sm-5 text-muted small">Name</dt>
+          <dd class="col-sm-7"><%= @household.name %></dd>
+
+          <dt class="col-sm-5 text-muted small">Share Token</dt>
+          <dd class="col-sm-7"><code><%= @household.share_token %></code></dd>
+
+          <dt class="col-sm-5 text-muted small">Created</dt>
+          <dd class="col-sm-7 small"><%= @household.created_at.strftime("%b %-d, %Y") %></dd>
+        </dl>
+
+        <hr class="my-3">
+
+        <h6 class="text-uppercase text-muted small fw-semibold mb-2">Stats</h6>
+        <div class="d-flex gap-3">
+          <div class="text-center">
+            <div class="fw-bold fs-5"><%= @household.items.count %></div>
+            <div class="text-muted" style="font-size: 0.75rem;">Items</div>
+          </div>
+          <div class="text-center">
+            <div class="fw-bold fs-5"><%= @household.items.where(on_list: true).count %></div>
+            <div class="text-muted" style="font-size: 0.75rem;">On List</div>
+          </div>
+          <div class="text-center">
+            <div class="fw-bold fs-5"><%= @household.stores.count %></div>
+            <div class="text-muted" style="font-size: 0.75rem;">Stores</div>
+          </div>
+          <div class="text-center">
+            <div class="fw-bold fs-5"><%= @household.categories.count %></div>
+            <div class="text-muted" style="font-size: 0.75rem;">Categories</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <div class="card shadow-none">
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h6 class="text-uppercase text-muted small fw-semibold mb-0">
+            Members (<%= @members.count %>)
+          </h6>
+        </div>
+
+        <% if @members.any? %>
+          <table class="table table-sm align-middle mb-3">
+            <thead class="table-light">
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @members.each do |user| %>
+                <tr>
+                  <td><%= link_to user.name, admin_user_path(user), class: "text-decoration-none" %></td>
+                  <td class="text-muted small"><%= user.email %></td>
+                  <td class="text-end">
+                    <%= button_to "Remove", remove_member_admin_household_path(@household, user_id: user.id),
+                          method: :delete,
+                          class: "btn btn-sm btn-outline-danger",
+                          form: { onsubmit: "return confirm('Remove #{user.name} from this household?')" } %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% end %>
+
+        <% if @non_members.any? %>
+          <h6 class="text-uppercase text-muted small fw-semibold mb-2">Add Member</h6>
+          <%= form_with url: add_member_admin_household_path(@household), method: :post, class: "d-flex gap-2" do |f| %>
+            <select name="user_id" class="form-select form-select-sm">
+              <% @non_members.each do |user| %>
+                <option value="<%= user.id %>"><%= user.name %> (<%= user.email %>)</option>
+              <% end %>
+            </select>
+            <%= f.submit "Add", class: "btn btn-sm btn-primary" %>
+          <% end %>
+        <% end %>
+
+        <% if @members.empty? && @non_members.empty? %>
+          <p class="text-muted small mb-0">No users exist yet.</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

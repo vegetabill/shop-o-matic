@@ -4,9 +4,12 @@ class User < ApplicationRecord
   has_many :added_items, class_name: "Item", foreign_key: :added_by_user_id, dependent: :nullify
   has_many :updated_items, class_name: "Item", foreign_key: :updated_by_user_id, dependent: :nullify
 
+  enum :role, { normal: "normal", admin: "admin" }, default: "normal"
+
   validates :email, presence: true, uniqueness: { case_sensitive: false }, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :name, presence: true
   validates :auth0_uid, presence: true, uniqueness: true
+  validates :role, inclusion: { in: roles.keys }
 
   before_validation :normalize_email
 

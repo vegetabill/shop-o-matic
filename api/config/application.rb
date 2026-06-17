@@ -18,8 +18,8 @@ module Api
   class Application < Rails::Application
     config.load_defaults 8.0
 
-    # API-only mode
-    config.api_only = true
+    # Keep API-only off so the admin portal can render views with sessions/CSRF
+    config.api_only = false
 
     # Allow requests from any host in development/test
     config.hosts.clear if Rails.env.development? || Rails.env.test?

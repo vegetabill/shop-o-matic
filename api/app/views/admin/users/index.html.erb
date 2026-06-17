@@ -1,0 +1,42 @@
+<% content_for :page_title, "Users" %>
+<% content_for :header_actions do %>
+  <%= link_to "New User", new_admin_user_path, class: "btn btn-primary btn-sm" %>
+<% end %>
+
+<div class="card shadow-none">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Households</th>
+          <th>Auth UID</th>
+          <th>Joined</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @users.each do |user| %>
+          <tr>
+            <td><%= link_to user.name, admin_user_path(user), class: "fw-medium text-decoration-none text-dark" %></td>
+            <td class="text-muted"><%= user.email %></td>
+            <td><span class="badge bg-secondary rounded-pill"><%= user.households.size %></span></td>
+            <td><code class="small text-muted"><%= truncate(user.auth0_uid, length: 24) %></code></td>
+            <td class="text-muted small"><%= user.created_at.strftime("%b %-d, %Y") %></td>
+            <td class="text-end">
+              <%= link_to "Edit", edit_admin_user_path(user), class: "btn btn-sm btn-outline-secondary me-1" %>
+              <%= button_to "Delete", admin_user_path(user), method: :delete,
+                    class: "btn btn-sm btn-outline-danger",
+                    form: { onsubmit: "return confirm('Delete #{user.name}? This cannot be undone.')" } %>
+            </td>
+          </tr>
+        <% end %>
+        <% if @users.empty? %>
+          <tr><td colspan="6" class="text-center text-muted py-4">No users yet.</td></tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+<p class="text-muted small mt-2"><%= pluralize(@users.count, "user") %></p>

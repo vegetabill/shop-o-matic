@@ -1,0 +1,39 @@
+<%= form_with model: [:admin, user], class: "needs-validation" do |f| %>
+  <% if user.errors.any? %>
+    <div class="alert alert-danger">
+      <ul class="mb-0 ps-3">
+        <% user.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="mb-3">
+    <%= f.label :name, class: "form-label fw-medium" %>
+    <%= f.text_field :name, class: "form-control", required: true, autofocus: user.new_record? %>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :email, class: "form-label fw-medium" %>
+    <%= f.email_field :email, class: "form-control", required: true %>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :role, class: "form-label fw-medium" %>
+    <%= f.select :role, User.roles.keys.map { |r| [r.capitalize, r] }, {}, class: "form-select" %>
+  </div>
+
+  <% if user.new_record? %>
+    <div class="mb-3">
+      <%= f.label :auth0_uid, "Auth UID", class: "form-label fw-medium" %>
+      <%= f.text_field :auth0_uid, class: "form-control", placeholder: "Leave blank to auto-generate" %>
+      <div class="form-text">Leave blank to generate a placeholder UID for admin-created users.</div>
+    </div>
+  <% end %>
+
+  <div class="d-flex gap-2 mt-4">
+    <%= f.submit user.new_record? ? "Create User" : "Save Changes", class: "btn btn-primary" %>
+    <%= link_to "Cancel", user.new_record? ? admin_users_path : admin_user_path(user), class: "btn btn-outline-secondary" %>
+  </div>
+<% end %>
