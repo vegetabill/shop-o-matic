@@ -18,6 +18,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.29poms.shop",
+      "usesAppleSignIn": true,
       "infoPlist": {
         "NSCameraUsageDescription": "Camera is not used by this app.",
         "NSPhotoLibraryUsageDescription": "Photo library is not used by this app.",

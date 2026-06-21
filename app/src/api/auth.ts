@@ -9,4 +9,3 @@ export interface AuthResponse {
 export async function exchangeAuth0Token(idToken: string): Promise<AuthResponse> {
   return apiClient.post<AuthResponse>('/auth/auth0', { id_token: idToken });
 }
-
